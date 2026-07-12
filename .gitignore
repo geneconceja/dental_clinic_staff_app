@@ -63,6 +63,7 @@ firestore-debug.log
 pubsub-debug.log
 database-debug.log
 *-debug.log
+lib/firebase_options.dart
 
 # Local emulator persisted data (from --export-on-exit) — never commit,
 # it's local test data and can get large
