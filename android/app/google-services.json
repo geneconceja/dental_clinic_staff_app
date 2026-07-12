@@ -1,0 +1,105 @@
+{
+  "project_info": {
+    "project_number": "674648400625",
+    "project_id": "oralscope-78cda",
+    "storage_bucket": "oralscope-78cda.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:674648400625:android:338a07fc0d9b3be65abf50",
+        "android_client_info": {
+          "package_name": "com.example.dental_clinic_staff_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSALib5E6zdjr7dajIAEXohnuDvfzzY8Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:674648400625:android:d59ebe5e0caabb935abf50",
+        "android_client_info": {
+          "package_name": "com.example.landing_login_signup_flutter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSALib5E6zdjr7dajIAEXohnuDvfzzY8Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:674648400625:android:2f2b4021bc9270325abf50",
+        "android_client_info": {
+          "package_name": "com.example.oral_admin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSALib5E6zdjr7dajIAEXohnuDvfzzY8Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:674648400625:android:1ee0eed4c6d9295c5abf50",
+        "android_client_info": {
+          "package_name": "com.example.oralscope2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSALib5E6zdjr7dajIAEXohnuDvfzzY8Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:674648400625:android:592f93b87148cd425abf50",
+        "android_client_info": {
+          "package_name": "com.example.oralscope_business"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSALib5E6zdjr7dajIAEXohnuDvfzzY8Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,148 @@
+// firestore.rules
+// Dental Clinic Appointment System — Staff/Admin App
+//
+// IMPORTANT: Firestore security rules are scoped to the ENTIRE Firebase project,
+// not per-app. Since this project's Firestore is shared with the separate,
+// already-live patient app, these rules must accommodate BOTH apps' access
+// patterns — not just this repo's.
+//
+// Sections marked with ⚠️ ASSUMPTION need to be confirmed against the patient
+// app's actual client-side read/write behavior before this file is deployed.
+// Deploying an incorrect assumption here could break the live patient app.
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Helper functions ----------
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function staffDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function isStaffOrAdmin() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && staffDoc().data.role in ['staff', 'admin'];
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && staffDoc().data.role == 'admin';
+    }
+
+    // ⚠️ ASSUMPTION: patients are NOT expected to have a corresponding doc in
+    // `users/{uid}` — that collection is staff/admin only per the spec. This
+    // function checks only "is this the appointment's own patient," using the
+    // appointment document itself, not a users lookup.
+    function isOwningPatient(appointmentData) {
+      return isSignedIn() && appointmentData.userId == request.auth.uid;
+    }
+
+    // ---------- users (staff/admin accounts only) ----------
+
+    match /users/{uid} {
+      allow read: if isStaffOrAdmin();
+      // Staff accounts are created by an admin flow / Cloud Function, not
+      // arbitrary client writes. Allow a signed-in staff user to update only
+      // their own non-role fields (name/phone) if you build a profile-edit
+      // screen; role changes should go through an admin-only Cloud Function.
+      allow update: if isSignedIn() && request.auth.uid == uid
+        && request.resource.data.role == resource.data.role; // can't self-promote
+      allow create, delete: if isAdmin();
+    }
+
+    // ---------- services ----------
+
+    match /services/{serviceId} {
+      // ⚠️ ASSUMPTION: the patient app also needs to read services (to let
+      // patients pick what they're booking for) — confirm this is still true
+      // if/when `reason` is deprecated in favor of `serviceId`. For now, allow
+      // any signed-in user (staff or patient) to read.
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // ---------- clinicSettings ----------
+
+    match /clinicSettings/{docId} {
+      // ⚠️ ASSUMPTION: same as services — patient app likely reads this to
+      // compute available slots on its side. Confirm.
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // ---------- appointments (shared schema — patient-app owned fields) ----------
+
+    match /appointments/{appointmentId} {
+
+      allow read: if isStaffOrAdmin() || isOwningPatient(resource.data);
+
+      // ⚠️ ASSUMPTION — HIGHEST RISK SECTION:
+      // We don't yet know whether the patient app creates appointments via a
+      // direct client SDK write, or via its own Cloud Function (which would
+      // use the Admin SDK and bypass these rules entirely). The two scenarios
+      // require very different rules:
+      //
+      //   (a) If patient app writes via a Cloud Function (Admin SDK) →
+      //       client-side `create` should be locked down entirely except for
+      //       this app's own `createWalkInAppointment` — but that ALSO uses a
+      //       Cloud Function, so in this scenario NO direct client create is
+      //       ever needed and the rule below should be `allow create: if false;`
+      //
+      //   (b) If patient app creates directly from its client SDK → the rule
+      //       below (uncommented) allows a signed-in user to create an
+      //       appointment for themselves, but this app should still route
+      //       walk-ins through createWalkInAppointment (Admin SDK, bypasses
+      //       this rule) rather than a client write.
+      //
+      // DEFAULT ASSUMED HERE: scenario (a) — lock down direct creates
+      // entirely, since this spec assumes ALL creates (both apps) go through
+      // Cloud Functions. Change to scenario (b)'s rule if that's confirmed
+      // incorrect.
+      allow create: if false;
+
+      // Uncomment and use instead if scenario (b) is confirmed:
+      // allow create: if isSignedIn()
+      //   && request.resource.data.userId == request.auth.uid
+      //   && request.resource.data.status == 'pending';
+
+      allow update: if isStaffOrAdmin()
+          && isValidStatusTransition(resource.data.status, request.resource.data.status)
+          // staff/admin may update status, paid, notes, bookingSource-adjacent
+          // fields — but must NOT alter patient-app-owned identity fields on
+          // a patient-app-originated record
+          && onlyStaffManagedFieldsChanged()
+        || (
+          isOwningPatient(resource.data)
+          && resource.data.status in ['pending', 'confirmed']
+          && request.resource.data.status == 'cancelled'
+          && onlyStatusFieldChanged()
+        );
+
+      allow delete: if false; // soft-delete via status only, never hard delete
+
+      function isValidStatusTransition(oldStatus, newStatus) {
+        return (oldStatus == 'pending' && newStatus in ['confirmed', 'cancelled'])
+          || (oldStatus == 'confirmed' && newStatus in ['cancelled', 'completed', 'no-show'])
+          || (oldStatus == newStatus); // allow no-op status field alongside other field edits
+      }
+
+      function onlyStatusFieldChanged() {
+        return request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status', 'updatedAt']);
+      }
+
+      function onlyStaffManagedFieldsChanged() {
+        return request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status', 'paid', 'notes', 'reminderSent', 'updatedAt']);
+      }
+    }
+  }
+}
