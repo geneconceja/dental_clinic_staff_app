@@ -102,16 +102,13 @@ service cloud.firestore {
       //       walk-ins through createWalkInAppointment (Admin SDK, bypasses
       //       this rule) rather than a client write.
       //
-      // DEFAULT ASSUMED HERE: scenario (a) — lock down direct creates
-      // entirely, since this spec assumes ALL creates (both apps) go through
-      // Cloud Functions. Change to scenario (b)'s rule if that's confirmed
-      // incorrect.
-      allow create: if false;
-
-      // Uncomment and use instead if scenario (b) is confirmed:
-      // allow create: if isSignedIn()
-      //   && request.resource.data.userId == request.auth.uid
-      //   && request.resource.data.status == 'pending';
+      // ✅ RESOLVED (decisions-log.md #7, 2026-07-16):
+      // The patient app creates appointments directly via the client SDK (scenario b).
+      // Staff walk-ins go through createWalkInAppointment (Admin SDK, bypasses this rule).
+      // Rule: any signed-in user may create a pending appointment for themselves.
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'pending';
 
       allow update: if isStaffOrAdmin()
           && isValidStatusTransition(resource.data.status, request.resource.data.status)

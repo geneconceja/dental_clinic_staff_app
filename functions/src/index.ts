@@ -1,32 +1,26 @@
 /**
- * Import function triggers from their respective submodules:
+ * index.ts
+ * Dental Clinic Staff/Admin App — Cloud Functions entry point.
  *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
+ * One export per function file. Add new functions here as they are implemented.
+ * See docs/functions-api-contract.md for the contract each function implements.
  */
 
-import {setGlobalOptions} from "firebase-functions";
-import {onRequest} from "firebase-functions/https";
-import * as logger from "firebase-functions/logger";
+import { setGlobalOptions } from "firebase-functions";
 
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
-
-// For cost control, you can set the maximum number of containers that can be
-// running at the same time. This helps mitigate the impact of unexpected
-// traffic spikes by instead downgrading performance. This limit is a
-// per-function limit. You can override the limit for each function using the
-// `maxInstances` option in the function's options, e.g.
-// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
-// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
-// functions should each use functions.runWith({ maxInstances: 10 }) instead.
-// In the v1 API, each function can only serve one request per container, so
-// this will be the maximum concurrent request count.
+// Cost-control: cap concurrent containers across all functions.
+// Individual functions may override this with their own maxInstances option.
 setGlobalOptions({ maxInstances: 10 });
 
-// export const helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+// Phase 2 — Walk-in booking engine
+export { createWalkInAppointment } from "./createWalkInAppointment";
+
+// Phase 2 — Status updates (to be implemented next)
+// export { updateAppointmentStatus } from "./updateAppointmentStatus";
+
+// Phase 5 — Walk-in image analysis (blocked on decisions-log.md #6)
+// export { analyzeWalkInImage } from "./analyzeWalkInImage";
+
+// Phase 6 — Notifications (blocked on decisions-log.md #5)
+// export { sendReminders } from "./sendReminders";
+// export { onAppointmentStatusChange } from "./onAppointmentStatusChange";
