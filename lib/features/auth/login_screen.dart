@@ -44,12 +44,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await ref.read(authRepositoryProvider).signInWithEmail(
+      final credential = await ref.read(authRepositoryProvider).signInWithEmail(
             _emailController.text,
             _passwordController.text,
           );
-      // On success, the router's redirect guard navigates to /dashboard
-      // automatically via the authStateProvider stream — no manual push needed.
+      final user = credential.user;
+      if (user != null) {
+        final profile = await ref.read(authRepositoryProvider).fetchStaffProfile(user.uid);
+        if (profile == null) {
+          await ref.read(authRepositoryProvider).signOut();
+          throw const AuthException('Login failed.');
+        }
+        if (!profile.active) {
+          await ref.read(authRepositoryProvider).signOut();
+          throw const AuthException('Login failed.');
+        }
+      }
     } on AuthException catch (e) {
       setState(() => _errorMessage = e.message);
     } finally {

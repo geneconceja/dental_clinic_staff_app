@@ -55,8 +55,8 @@ service cloud.firestore {
       // arbitrary client writes. Allow a signed-in staff user to update only
       // their own non-role fields (name/phone) if you build a profile-edit
       // screen; role changes should go through an admin-only Cloud Function.
-      allow update: if isSignedIn() && request.auth.uid == uid
-        && request.resource.data.role == resource.data.role; // can't self-promote
+      allow update: if isAdmin()
+        || (isSignedIn() && request.auth.uid == uid && request.resource.data.role == resource.data.role);
       allow create, delete: if isAdmin();
     }
 

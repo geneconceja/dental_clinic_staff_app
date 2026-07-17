@@ -10,17 +10,17 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
 import '../core/theme/app_colors.dart';
+import '../core/widgets/app_shell.dart';
 import '../features/auth/auth_providers.dart';
 import '../features/auth/login_screen.dart';
-import '../features/services_admin/services_repository.dart';
-import '../features/review_queue/appointments_repository.dart';
-import '../core/widgets/app_shell.dart';
+import '../features/dashboard/dashboard_screen.dart';
 import '../features/review_queue/review_queue_screen.dart';
 import '../features/review_queue/appointment_detail_screen.dart';
-import '../features/dashboard/dashboard_screen.dart';
 import '../features/walk_in_booking/walk_in_booking_screen.dart';
+import '../features/services_admin/services_screen.dart';
+import '../features/settings/settings_screen.dart';
+import '../features/staff_management/staff_screen.dart';
 
 // ---------- Route name constants ----------
 
@@ -62,11 +62,32 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return onLoginPage ? null : '/login';
       }
 
-      // Logged in + on login page → go to dashboard
-      if (onLoginPage) return '/dashboard';
+      // Logged in + on login page → wait for profile to resolve before redirecting to dashboard
+      if (onLoginPage) {
+        final profileState = ref.read(staffProfileProvider);
+        if (profileState.isLoading) return null;
+
+        final profile = profileState.asData?.value;
+        if (profile != null && profile.active) {
+          return '/dashboard';
+        }
+        return null; // stay on login page (login screen's _submit handles the signout and error display)
+      }
+
+      // While the staff profile is loading, stay on the current route.
+      // The router notifier will trigger a redirect re-evaluation when the profile resolves.
+      final profileState = ref.read(staffProfileProvider);
+      if (profileState.isLoading) return null;
+
+      final profile = profileState.asData?.value;
+      if (profile == null || !profile.active) {
+        // Deactivated or invalid profile → sign out and boot to login
+        ref.read(authRepositoryProvider).signOut();
+        return '/login';
+      }
 
       // Admin-only route check
-      final role = ref.read(currentRoleProvider);
+      final role = profile.role.name;
       const adminOnlyPaths = ['/services', '/settings', '/staff'];
       final isAdminOnly = adminOnlyPaths.contains(state.matchedLocation);
       if (isAdminOnly && role != 'admin') return '/403';
@@ -112,26 +133,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/services',
             name: AppRoutes.services,
-            builder: (_, __) => const _PlaceholderScreen(
-              title: 'Services (Admin)',
-              icon: Icons.medical_services_outlined,
-            ),
+            builder: (_, __) => const ServicesScreen(),
           ),
           GoRoute(
             path: '/settings',
             name: AppRoutes.settings,
-            builder: (_, __) => const _PlaceholderScreen(
-              title: 'Clinic Settings (Admin)',
-              icon: Icons.settings_outlined,
-            ),
+            builder: (_, __) => const SettingsScreen(),
           ),
           GoRoute(
             path: '/staff',
             name: AppRoutes.staff,
-            builder: (_, __) => const _PlaceholderScreen(
-              title: 'Staff Management (Admin)',
-              icon: Icons.manage_accounts_outlined,
-            ),
+            builder: (_, __) => const StaffScreen(),
           ),
         ],
       ),
@@ -152,128 +164,6 @@ class _AuthRouterNotifier extends ChangeNotifier {
   _AuthRouterNotifier(Ref ref) {
     ref.listen(authStateProvider, (_, __) => notifyListeners());
     ref.listen(staffProfileProvider, (_, __) => notifyListeners());
-  }
-}
-
-// ---------- Placeholder screen (temporary) ----------
-
-/// Generic placeholder used for routes not yet implemented.
-/// Will be replaced screen-by-screen in later phases.
-class _PlaceholderScreen extends ConsumerWidget {
-  const _PlaceholderScreen({required this.title, required this.icon});
-
-  final String title;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final servicesAsync = ref.watch(activeServicesProvider);
-    final pendingAsync = ref.watch(pendingAppointmentsProvider);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-        actions: [
-          IconButton(
-            tooltip: 'Sign out',
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await ref.read(authRepositoryProvider).signOut();
-            },
-          ),
-        ],
-      ),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 64, color: AppColors.border),
-            const SizedBox(height: 16),
-            Text(title, style: theme.textTheme.headlineSmall),
-            const SizedBox(height: 8),
-            Text(
-              'This screen is coming soon.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // ---------- Live Data Verification Panel ----------
-            Container(
-              constraints: const BoxConstraints(maxWidth: 340),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceVariant,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    'Phase 3 Data Layer Status',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 12),
-                  servicesAsync.when(
-                    data: (list) => Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Active Services:'),
-                        Text('${list.length}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                    loading: () => const LinearProgressIndicator(),
-                    error: (err, _) => Text('Services Error: $err', style: const TextStyle(color: AppColors.error)),
-                  ),
-                  const SizedBox(height: 8),
-                  pendingAsync.when(
-                    data: (list) => Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Pending Appts:'),
-                        Text('${list.length}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                    loading: () => const LinearProgressIndicator(),
-                    error: (err, _) => Text('Appointments Error: $err', style: const TextStyle(color: AppColors.error)),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 32),
-            // Quick-nav for development convenience
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              alignment: WrapAlignment.center,
-              children: [
-                if (title != 'Dashboard')
-                  OutlinedButton.icon(
-                    icon: const Icon(Icons.dashboard_outlined, size: 16),
-                    label: const Text('Dashboard'),
-                    onPressed: () => context.goNamed(AppRoutes.dashboard),
-                  ),
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.inbox_outlined, size: 16),
-                  label: const Text('Review Queue'),
-                  onPressed: () => context.goNamed(AppRoutes.reviewQueue),
-                ),
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.person_add_outlined, size: 16),
-                  label: const Text('New Walk-In'),
-                  onPressed: () => context.goNamed(AppRoutes.walkInNew),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
 
