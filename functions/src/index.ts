@@ -24,9 +24,9 @@ export { createWalkInAppointment } from "./createWalkInAppointment";
 // Phase 2 — Status updates
 export { updateAppointmentStatus } from "./updateAppointmentStatus";
 
-// Phase 5 — Walk-in image analysis (blocked on decisions-log.md #6)
+// Phase 5 — Walk-in image analysis (skipped per user decision — no image uploads on clinic side)
 // export { analyzeWalkInImage } from "./analyzeWalkInImage";
 
-// Phase 6 — Notifications (blocked on decisions-log.md #5)
-// export { sendReminders } from "./sendReminders";
-// export { onAppointmentStatusChange } from "./onAppointmentStatusChange";
+// Phase 6 — Notifications
+export { sendReminders } from "./sendReminders";
+export { onAppointmentStatusChange } from "./onAppointmentStatusChange";

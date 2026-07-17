@@ -327,6 +327,36 @@ async function seed() {
       reminderSent: false,
       createdAt: now,
     },
+
+    // -----------------------------------------------------------------------
+    // NOTIFICATION TEST appointment — userEmail is the Resend-registered
+    // account address so sandbox emails are actually delivered.
+    // Confirm or cancel this appointment in the Review Queue to trigger an email.
+    // -----------------------------------------------------------------------
+    {
+      id: "appt-notify-test",
+      userId: "simulated-patient-uid-notify",
+      userEmail: "geneconceja@gmail.com",
+      firstName: "Gene",
+      lastName: "Conceja",
+      phoneNumber: "09171234567",
+      serviceId: "svc-cleaning",
+      serviceName: "Teeth Cleaning",
+      reason: "Teeth Cleaning",
+      date: "2026-08-20",
+      appointmentDateTime: Timestamp.fromDate(new Date("2026-08-20T10:00:00+08:00")),
+      startTime: "10:00",
+      endTime: "10:30",
+      notes: "Notification test appointment — confirm or cancel to trigger email",
+      imageUrl: null,
+      analysisResults: null,
+      status: "pending",
+      bookingSource: "patient_app",
+      createdBy: null,
+      paid: false,
+      reminderSent: false,
+      createdAt: now,
+    },
   ];
 
   for (const appt of appointments) {
