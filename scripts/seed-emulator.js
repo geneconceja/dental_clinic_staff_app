@@ -45,16 +45,29 @@ async function seed() {
   const staffUids = {};
 
   for (const account of staffAccounts) {
-    const userRecord = await auth.createUser({
-      email: account.email,
-      password: account.password,
-      displayName: account.name,
-    });
+    let uid;
+    try {
+      const userRecord = await auth.getUserByEmail(account.email);
+      uid = userRecord.uid;
+      console.log(`Found existing auth account for ${account.email} (${uid})`);
+    } catch (e) {
+      if (e.code === 'auth/user-not-found') {
+        const userRecord = await auth.createUser({
+          email: account.email,
+          password: account.password,
+          displayName: account.name,
+        });
+        uid = userRecord.uid;
+        console.log(`Created new auth account for ${account.role} user: ${account.email} (${uid})`);
+      } else {
+        throw e;
+      }
+    }
 
-    staffUids[account.role + "_" + account.email] = userRecord.uid;
+    staffUids[account.role + "_" + account.email] = uid;
 
-    await db.collection("users").doc(userRecord.uid).set({
-      uid: userRecord.uid,
+    await db.collection("users").doc(uid).set({
+      uid: uid,
       role: account.role,
       name: account.name,
       email: account.email,
@@ -62,8 +75,7 @@ async function seed() {
       active: true,
       createdAt: FieldValue.serverTimestamp(),
     });
-
-    console.log(`Created ${account.role} user: ${account.email} (${userRecord.uid})`);
+    console.log(`Created/updated users/${uid} doc for ${account.email}`);
   }
 
   // ---------- 2. Services ----------

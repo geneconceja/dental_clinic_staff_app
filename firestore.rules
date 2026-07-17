@@ -42,7 +42,9 @@ service cloud.firestore {
     // function checks only "is this the appointment's own patient," using the
     // appointment document itself, not a users lookup.
     function isOwningPatient(appointmentData) {
-      return isSignedIn() && appointmentData.userId == request.auth.uid;
+      return isSignedIn()
+        && 'userId' in appointmentData
+        && appointmentData.userId == request.auth.uid;
     }
 
     // ---------- users (staff/admin accounts only) ----------
