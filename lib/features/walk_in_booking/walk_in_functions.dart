@@ -47,13 +47,33 @@ class WalkInFunctions {
         'lastName': lastName,
         'phoneNumber': phoneNumber,
         'serviceId': serviceId,
-        'appointmentDateTime': appointmentDateTime.toUtc().toIso8601String(),
+        // The Cloud Function extracts startTime via getUTCHours()/getUTCMinutes(),
+        // so we must send the local wall-clock time as if it were UTC (no offset shift).
+        // Sending .toUtc() would subtract the local offset (e.g. +08:00 → -8 hours),
+        // causing the stored startTime to be 8 hours behind the selected slot.
+        'appointmentDateTime': _localAsUtcIso(appointmentDateTime),
         if (notes != null) 'notes': notes,
         if (imageUrl != null) 'imageUrl': imageUrl,
       },
     );
 
     return WalkInAppointmentResult.fromMap(rawResult);
+  }
+
+  /// Formats [dt] as a UTC-style ISO 8601 string using the local wall-clock
+  /// hours and minutes — WITHOUT converting to UTC.
+  ///
+  /// The Cloud Function reads startTime via `getUTCHours()`/`getUTCMinutes()`,
+  /// so the payload must represent local time in the Z/UTC slot. Using
+  /// [DateTime.toUtc] would subtract the local offset (e.g. 15:00 +08:00
+  /// becomes 07:00Z), causing the stored startTime to be 8 hours wrong.
+  static String _localAsUtcIso(DateTime dt) {
+    final y = dt.year.toString().padLeft(4, '0');
+    final mo = dt.month.toString().padLeft(2, '0');
+    final d = dt.day.toString().padLeft(2, '0');
+    final h = dt.hour.toString().padLeft(2, '0');
+    final mi = dt.minute.toString().padLeft(2, '0');
+    return '$y-$mo-${d}T$h:$mi:00.000Z';
   }
 }
 

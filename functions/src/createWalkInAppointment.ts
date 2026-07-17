@@ -19,14 +19,8 @@
 import { onCall, HttpsError, CallableRequest } from "firebase-functions/v2/https";
 import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
-import { initializeApp, getApps } from "firebase-admin/app";
 import * as logger from "firebase-functions/logger";
 import { Appointment, Service, StaffUser, ClinicSettings } from "./schema-types";
-
-// Ensure the Admin SDK is initialised exactly once (safe to call multiple times).
-if (getApps().length === 0) {
-  initializeApp();
-}
 
 // ---------- Input type ----------
 

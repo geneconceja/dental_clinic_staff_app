@@ -42,3 +42,10 @@ class ClinicSettingsRepository {
 final clinicSettingsRepositoryProvider = Provider<ClinicSettingsRepository>((ref) {
   return ClinicSettingsRepository();
 });
+
+/// Streams the clinic settings document. Used by the Walk-In form for slot
+/// generation and holiday checking.
+final clinicSettingsProvider = StreamProvider<ClinicSettings?>((ref) {
+  return ref.watch(clinicSettingsRepositoryProvider).watchClinicSettings();
+});
+

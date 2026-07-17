@@ -82,3 +82,12 @@ final appointmentsRepositoryProvider = Provider<AppointmentsRepository>((ref) {
 final pendingAppointmentsProvider = StreamProvider<List<Appointment>>((ref) {
   return ref.watch(appointmentsRepositoryProvider).watchPendingAppointments();
 });
+
+/// Streams all appointments for a specific date string ("YYYY-MM-DD").
+/// Used by the Dashboard screen to show the day's schedule.
+final appointmentsByDateProvider =
+    StreamProvider.family<List<Appointment>, String>((ref, dateStr) {
+  return ref
+      .watch(appointmentsRepositoryProvider)
+      .watchAppointmentsByDate(dateStr);
+});

@@ -7,6 +7,12 @@
  */
 
 import { setGlobalOptions } from "firebase-functions";
+import { initializeApp, getApps } from "firebase-admin/app";
+
+// Initialize Firebase Admin SDK globally.
+if (getApps().length === 0) {
+  initializeApp();
+}
 
 // Cost-control: cap concurrent containers across all functions.
 // Individual functions may override this with their own maxInstances option.
@@ -15,8 +21,8 @@ setGlobalOptions({ maxInstances: 10 });
 // Phase 2 — Walk-in booking engine
 export { createWalkInAppointment } from "./createWalkInAppointment";
 
-// Phase 2 — Status updates (to be implemented next)
-// export { updateAppointmentStatus } from "./updateAppointmentStatus";
+// Phase 2 — Status updates
+export { updateAppointmentStatus } from "./updateAppointmentStatus";
 
 // Phase 5 — Walk-in image analysis (blocked on decisions-log.md #6)
 // export { analyzeWalkInImage } from "./analyzeWalkInImage";

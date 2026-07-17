@@ -12,7 +12,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 // Emulator ports — must match firebase.json / emulator startup config.
-const String _emulatorHost = 'localhost';
+const String _emulatorHost = '127.0.0.1';
 const int _authPort = 9099;
 const int _firestorePort = 8080;
 const int _functionsPort = 5001;

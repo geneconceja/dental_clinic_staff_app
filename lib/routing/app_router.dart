@@ -16,6 +16,11 @@ import '../features/auth/auth_providers.dart';
 import '../features/auth/login_screen.dart';
 import '../features/services_admin/services_repository.dart';
 import '../features/review_queue/appointments_repository.dart';
+import '../core/widgets/app_shell.dart';
+import '../features/review_queue/review_queue_screen.dart';
+import '../features/review_queue/appointment_detail_screen.dart';
+import '../features/dashboard/dashboard_screen.dart';
+import '../features/walk_in_booking/walk_in_booking_screen.dart';
 
 // ---------- Route name constants ----------
 
@@ -74,61 +79,61 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: AppRoutes.login,
         builder: (_, __) => const LoginScreen(),
       ),
-      GoRoute(
-        path: '/dashboard',
-        name: AppRoutes.dashboard,
-        builder: (_, __) => const _PlaceholderScreen(
-          title: 'Dashboard',
-          icon: Icons.dashboard_outlined,
-        ),
-      ),
-      GoRoute(
-        path: '/review-queue',
-        name: AppRoutes.reviewQueue,
-        builder: (_, __) => const _PlaceholderScreen(
-          title: 'Review Queue',
-          icon: Icons.inbox_outlined,
-        ),
-      ),
-      GoRoute(
-        path: '/walk-in/new',
-        name: AppRoutes.walkInNew,
-        builder: (_, __) => const _PlaceholderScreen(
-          title: 'New Walk-In Appointment',
-          icon: Icons.person_add_outlined,
-        ),
-      ),
-      GoRoute(
-        path: '/appointment/:id',
-        name: AppRoutes.appointmentDetail,
-        builder: (context, state) => _PlaceholderScreen(
-          title: 'Appointment #${state.pathParameters['id']}',
-          icon: Icons.event_outlined,
-        ),
-      ),
-      GoRoute(
-        path: '/services',
-        name: AppRoutes.services,
-        builder: (_, __) => const _PlaceholderScreen(
-          title: 'Services (Admin)',
-          icon: Icons.medical_services_outlined,
-        ),
-      ),
-      GoRoute(
-        path: '/settings',
-        name: AppRoutes.settings,
-        builder: (_, __) => const _PlaceholderScreen(
-          title: 'Clinic Settings (Admin)',
-          icon: Icons.settings_outlined,
-        ),
-      ),
-      GoRoute(
-        path: '/staff',
-        name: AppRoutes.staff,
-        builder: (_, __) => const _PlaceholderScreen(
-          title: 'Staff Management (Admin)',
-          icon: Icons.manage_accounts_outlined,
-        ),
+      ShellRoute(
+        builder: (context, state, child) {
+          return AppShell(
+            currentRoute: state.matchedLocation,
+            child: child,
+          );
+        },
+        routes: [
+          GoRoute(
+            path: '/dashboard',
+            name: AppRoutes.dashboard,
+            builder: (_, __) => const DashboardScreen(),
+          ),
+          GoRoute(
+            path: '/review-queue',
+            name: AppRoutes.reviewQueue,
+            builder: (_, __) => const ReviewQueueScreen(),
+          ),
+          GoRoute(
+            path: '/walk-in/new',
+            name: AppRoutes.walkInNew,
+            builder: (_, __) => const WalkInBookingScreen(),
+          ),
+          GoRoute(
+            path: '/appointment/:id',
+            name: AppRoutes.appointmentDetail,
+            builder: (context, state) => AppointmentDetailScreen(
+              appointmentId: state.pathParameters['id']!,
+            ),
+          ),
+          GoRoute(
+            path: '/services',
+            name: AppRoutes.services,
+            builder: (_, __) => const _PlaceholderScreen(
+              title: 'Services (Admin)',
+              icon: Icons.medical_services_outlined,
+            ),
+          ),
+          GoRoute(
+            path: '/settings',
+            name: AppRoutes.settings,
+            builder: (_, __) => const _PlaceholderScreen(
+              title: 'Clinic Settings (Admin)',
+              icon: Icons.settings_outlined,
+            ),
+          ),
+          GoRoute(
+            path: '/staff',
+            name: AppRoutes.staff,
+            builder: (_, __) => const _PlaceholderScreen(
+              title: 'Staff Management (Admin)',
+              icon: Icons.manage_accounts_outlined,
+            ),
+          ),
+        ],
       ),
       GoRoute(
         path: '/403',

@@ -23,8 +23,8 @@ const { getAuth } = require("firebase-admin/auth");
 
 // Point the Admin SDK at the local emulators, NOT production.
 // These must match the ports in firebase.json / emulators:start output.
-process.env.FIRESTORE_EMULATOR_HOST = "localhost:8080";
-process.env.FIREBASE_AUTH_EMULATOR_HOST = "localhost:9099";
+process.env.FIRESTORE_EMULATOR_HOST = "127.0.0.1:8080";
+process.env.FIREBASE_AUTH_EMULATOR_HOST = "127.0.0.1:9099";
 
 initializeApp({ projectId: "oralscope-78cda" });
 
@@ -120,6 +120,17 @@ async function seed() {
 
   const now = Timestamp.now();
   const staffAdminUid = staffUids["admin_admin@clinic.test"];
+
+  // Helpers for today-dated appointments
+  const todayDate = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  const todayStr = `${todayDate.getFullYear()}-${pad(todayDate.getMonth() + 1)}-${pad(todayDate.getDate())}`;
+  const todayAt = (hhmm) => {
+    const [h, m] = hhmm.split(":").map(Number);
+    const d = new Date(todayDate);
+    d.setHours(h, m, 0, 0);
+    return d;
+  };
 
   const appointments = [
     // Patient-app booking, pending
@@ -236,6 +247,80 @@ async function seed() {
       imageUrl: null,
       analysisResults: null,
       status: "cancelled",
+      bookingSource: "patient_app",
+      createdBy: null,
+      paid: false,
+      reminderSent: false,
+      createdAt: now,
+    },
+
+    // TODAY appointments — so the Dashboard shows data right after seeding
+    {
+      id: "appt-today-001",
+      userId: "simulated-patient-uid-today",
+      userEmail: "maria.santos@example.com",
+      firstName: "Maria",
+      lastName: "Santos",
+      phoneNumber: "09201234567",
+      serviceId: "svc-cleaning",
+      serviceName: "Teeth Cleaning",
+      reason: "Teeth Cleaning",
+      date: todayStr,
+      appointmentDateTime: Timestamp.fromDate(todayAt("09:00")),
+      startTime: "09:00",
+      endTime: "09:30",
+      notes: "Routine cleaning",
+      imageUrl: null,
+      analysisResults: null,
+      status: "confirmed",
+      bookingSource: "patient_app",
+      createdBy: null,
+      paid: false,
+      reminderSent: false,
+      createdAt: now,
+    },
+    {
+      id: "appt-today-002",
+      userId: null,
+      userEmail: null,
+      firstName: "Roberto",
+      lastName: "Cruz",
+      phoneNumber: "09301234567",
+      serviceId: "svc-extraction",
+      serviceName: "Tooth Extraction",
+      reason: "Tooth Extraction",
+      date: todayStr,
+      appointmentDateTime: Timestamp.fromDate(todayAt("10:00")),
+      startTime: "10:00",
+      endTime: "10:45",
+      notes: "Walk-in, upper right molar",
+      imageUrl: null,
+      analysisResults: null,
+      status: "confirmed",
+      bookingSource: "staff_walkin",
+      createdBy: staffAdminUid,
+      paid: true,
+      reminderSent: false,
+      createdAt: now,
+    },
+    {
+      id: "appt-today-003",
+      userId: "simulated-patient-uid-today2",
+      userEmail: "grace.lim@example.com",
+      firstName: "Grace",
+      lastName: "Lim",
+      phoneNumber: "09111234567",
+      serviceId: "svc-checkup",
+      serviceName: "Follow-up Consultation",
+      reason: "Follow-up Consultation",
+      date: todayStr,
+      appointmentDateTime: Timestamp.fromDate(todayAt("14:00")),
+      startTime: "14:00",
+      endTime: "14:20",
+      notes: null,
+      imageUrl: null,
+      analysisResults: null,
+      status: "pending",
       bookingSource: "patient_app",
       createdBy: null,
       paid: false,
