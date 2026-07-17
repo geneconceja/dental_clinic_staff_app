@@ -58,6 +58,12 @@ class AppShell extends ConsumerWidget {
                         onTap: () => context.goNamed(AppRoutes.dashboard),
                       ),
                       _SidebarItem(
+                        icon: Icons.calendar_month_outlined,
+                        label: 'Calendar',
+                        active: currentRoute == '/calendar',
+                        onTap: () => context.goNamed(AppRoutes.calendar),
+                      ),
+                      _SidebarItem(
                         icon: Icons.inbox_outlined,
                         label: 'Review Queue',
                         active: currentRoute == '/review-queue',

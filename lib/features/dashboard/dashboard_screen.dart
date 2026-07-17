@@ -1,9 +1,10 @@
 /// dashboard_screen.dart
 /// Dental Clinic Staff/Admin App
 ///
-/// Daily appointment calendar view. Shows all appointments for the selected
-/// date in a chronological timeline list. Staff can navigate day-by-day,
-/// filter by appointment status, and tap any tile to open the full detail view.
+/// Daily and range-based appointment calendar view. Shows appointments for
+/// the selected date or range in a chronological timeline list. Staff can navigate
+/// range-by-range (day, week, month), filter by appointment status, and tap any
+/// tile to open the full detail view.
 library;
 
 import 'package:flutter/material.dart';
@@ -16,6 +17,8 @@ import '../../features/review_queue/appointments_repository.dart';
 import '../../routing/app_router.dart';
 import 'dashboard_appointment_tile.dart';
 
+enum _DateRangeMode { today, thisWeek, thisMonth, custom }
+
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
@@ -25,6 +28,8 @@ class DashboardScreen extends ConsumerStatefulWidget {
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   DateTime _selectedDate = _today();
+  _DateRangeMode _dateRangeMode = _DateRangeMode.today;
+  DateTimeRange? _customRange;
   AppointmentStatus? _statusFilter; // null = show all
 
   static DateTime _today() {
@@ -32,26 +37,158 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return DateTime(now.year, now.month, now.day);
   }
 
-  String get _dateString {
-    return '${_selectedDate.year}-'
-        '${_selectedDate.month.toString().padLeft(2, '0')}-'
-        '${_selectedDate.day.toString().padLeft(2, '0')}';
+  String _formatDate(DateTime d) {
+    return '${d.year}-'
+        '${d.month.toString().padLeft(2, '0')}-'
+        '${d.day.toString().padLeft(2, '0')}';
   }
 
-  void _goToPrevDay() =>
-      setState(() => _selectedDate = _selectedDate.subtract(const Duration(days: 1)));
+  DateTime get _startDateTime {
+    switch (_dateRangeMode) {
+      case _DateRangeMode.today:
+        return _selectedDate;
+      case _DateRangeMode.thisWeek:
+        return _selectedDate.subtract(Duration(days: _selectedDate.weekday - 1));
+      case _DateRangeMode.thisMonth:
+        return DateTime(_selectedDate.year, _selectedDate.month, 1);
+      case _DateRangeMode.custom:
+        return _customRange?.start ?? _selectedDate;
+    }
+  }
 
-  void _goToNextDay() =>
-      setState(() => _selectedDate = _selectedDate.add(const Duration(days: 1)));
+  DateTime get _endDateTime {
+    switch (_dateRangeMode) {
+      case _DateRangeMode.today:
+        return _selectedDate;
+      case _DateRangeMode.thisWeek:
+        final monday = _selectedDate.subtract(Duration(days: _selectedDate.weekday - 1));
+        return monday.add(const Duration(days: 6));
+      case _DateRangeMode.thisMonth:
+        return DateTime(_selectedDate.year, _selectedDate.month + 1, 0);
+      case _DateRangeMode.custom:
+        return _customRange?.end ?? _selectedDate;
+    }
+  }
 
-  void _goToToday() => setState(() => _selectedDate = _today());
+  void _goToPrev() {
+    setState(() {
+      switch (_dateRangeMode) {
+        case _DateRangeMode.today:
+          _selectedDate = _selectedDate.subtract(const Duration(days: 1));
+          break;
+        case _DateRangeMode.thisWeek:
+          _selectedDate = _selectedDate.subtract(const Duration(days: 7));
+          break;
+        case _DateRangeMode.thisMonth:
+          _selectedDate = DateTime(_selectedDate.year, _selectedDate.month - 1, 1);
+          break;
+        case _DateRangeMode.custom:
+          break;
+      }
+    });
+  }
 
-  bool get _isToday => _selectedDate == _today();
+  void _goToNext() {
+    setState(() {
+      switch (_dateRangeMode) {
+        case _DateRangeMode.today:
+          _selectedDate = _selectedDate.add(const Duration(days: 1));
+          break;
+        case _DateRangeMode.thisWeek:
+          _selectedDate = _selectedDate.add(const Duration(days: 7));
+          break;
+        case _DateRangeMode.thisMonth:
+          _selectedDate = DateTime(_selectedDate.year, _selectedDate.month + 1, 1);
+          break;
+        case _DateRangeMode.custom:
+          break;
+      }
+    });
+  }
+
+  void _goToToday() {
+    setState(() {
+      _selectedDate = _today();
+      _dateRangeMode = _DateRangeMode.today;
+    });
+  }
+
+  bool get _isToday =>
+      _dateRangeMode == _DateRangeMode.today && _selectedDate == _today();
+
+  Future<void> _pickCustomRange() async {
+    final initialRange = _customRange ??
+        DateTimeRange(
+          start: _selectedDate,
+          end: _selectedDate.add(const Duration(days: 7)),
+        );
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+      initialDateRange: initialRange,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.primary,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: AppColors.textPrimary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        _customRange = picked;
+        _dateRangeMode = _DateRangeMode.custom;
+      });
+    }
+  }
+
+  String _getHeaderTitle() {
+    const weekdays = [
+      'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+    ];
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    if (_dateRangeMode == _DateRangeMode.today) {
+      final weekday = weekdays[_selectedDate.weekday - 1];
+      final month = months[_selectedDate.month - 1];
+      final day = _selectedDate.day;
+      final year = _selectedDate.year;
+      return '$weekday, $month $day, $year';
+    } else if (_dateRangeMode == _DateRangeMode.thisWeek) {
+      final start = _startDateTime;
+      final end = _endDateTime;
+      return 'Week of ${months[start.month - 1]} ${start.day} – ${months[end.month - 1]} ${end.day}, ${start.year}';
+    } else if (_dateRangeMode == _DateRangeMode.thisMonth) {
+      return '${months[_selectedDate.month - 1]} ${_selectedDate.year}';
+    } else {
+      if (_customRange == null) return 'Custom Range';
+      final start = _customRange!.start;
+      final end = _customRange!.end;
+      return '${months[start.month - 1]} ${start.day} – ${months[end.month - 1]} ${end.day}, ${start.year}';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final appointmentsAsync = ref.watch(appointmentsByDateProvider(_dateString));
+
+    final startStr = _formatDate(_startDateTime);
+    final endStr = _formatDate(_endDateTime);
+
+    final appointmentsAsync = ref.watch(
+      appointmentsByDateRangeProvider((start: startStr, end: endStr)),
+    );
 
     return Scaffold(
       body: Column(
@@ -59,6 +196,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         children: [
           // ── Header ──────────────────────────────────────────
           _buildHeader(theme),
+
+          // ── Date Range Choice Chips ────────────────────────
+          _buildDateRangeChips(theme),
 
           // ── Status Filter Chips ──────────────────────────────
           _buildFilterChips(theme),
@@ -79,6 +219,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   return _buildEmptyState(theme, appointments.isEmpty);
                 }
 
+                final showDate = _dateRangeMode != _DateRangeMode.today;
+
                 return ListView.builder(
                   padding: const EdgeInsets.only(top: 8, bottom: 80),
                   itemCount: filtered.length,
@@ -86,6 +228,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     final appt = filtered[i];
                     return DashboardAppointmentTile(
                       appointment: appt,
+                      showDate: showDate,
                       onTap: () => context.goNamed(
                         AppRoutes.appointmentDetail,
                         pathParameters: {'id': appt.id},
@@ -125,19 +268,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   // ---------- Sub-builders ----------
 
   Widget _buildHeader(ThemeData theme) {
-    final weekdays = [
-      'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
-    ];
-    final months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-
-    final weekday = weekdays[_selectedDate.weekday - 1];
-    final month = months[_selectedDate.month - 1];
-    final day = _selectedDate.day;
-    final year = _selectedDate.year;
-
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
       color: AppColors.surface,
@@ -149,7 +279,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '$weekday, $month $day, $year',
+                  _getHeaderTitle(),
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
@@ -179,36 +309,101 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   child: const Text('Today'),
                 ),
               const SizedBox(width: 4),
-              IconButton(
-                icon: const Icon(Icons.chevron_left),
-                tooltip: 'Previous day',
-                onPressed: _goToPrevDay,
-              ),
-              IconButton(
-                icon: const Icon(Icons.chevron_right),
-                tooltip: 'Next day',
-                onPressed: _goToNextDay,
-              ),
-              const SizedBox(width: 8),
+              if (_dateRangeMode != _DateRangeMode.custom) ...[
+                IconButton(
+                  icon: const Icon(Icons.chevron_left),
+                  tooltip: _dateRangeMode == _DateRangeMode.today
+                      ? 'Previous day'
+                      : _dateRangeMode == _DateRangeMode.thisWeek
+                          ? 'Previous week'
+                          : 'Previous month',
+                  onPressed: _goToPrev,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right),
+                  tooltip: _dateRangeMode == _DateRangeMode.today
+                      ? 'Next day'
+                      : _dateRangeMode == _DateRangeMode.thisWeek
+                          ? 'Next week'
+                          : 'Next month',
+                  onPressed: _goToNext,
+                ),
+                const SizedBox(width: 8),
+              ],
               OutlinedButton.icon(
                 icon: const Icon(Icons.calendar_month_outlined, size: 18),
-                label: const Text('Pick date'),
+                label: Text(_dateRangeMode == _DateRangeMode.custom
+                    ? 'Change Range'
+                    : 'Pick Date'),
                 onPressed: () async {
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate: _selectedDate,
-                    firstDate: DateTime(2020),
-                    lastDate: DateTime(2030),
-                  );
-                  if (picked != null) {
-                    setState(() => _selectedDate =
-                        DateTime(picked.year, picked.month, picked.day));
+                  if (_dateRangeMode == _DateRangeMode.custom) {
+                    await _pickCustomRange();
+                  } else {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: _selectedDate,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2030),
+                    );
+                    if (picked != null) {
+                      setState(() {
+                        _selectedDate =
+                            DateTime(picked.year, picked.month, picked.day);
+                        _dateRangeMode = _DateRangeMode.today;
+                      });
+                    }
                   }
                 },
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDateRangeChips(ThemeData theme) {
+    final modes = <(_DateRangeMode, String)>[
+      (_DateRangeMode.today, 'Today'),
+      (_DateRangeMode.thisWeek, 'This Week'),
+      (_DateRangeMode.thisMonth, 'This Month'),
+      (_DateRangeMode.custom, 'Custom Range'),
+    ];
+
+    return Container(
+      color: AppColors.surface,
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: modes.map((m) {
+            final isSelected = _dateRangeMode == m.$1;
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ChoiceChip(
+                label: Text(m.$2),
+                selected: isSelected,
+                onSelected: (selected) async {
+                  if (selected) {
+                    if (m.$1 == _DateRangeMode.custom) {
+                      await _pickCustomRange();
+                    } else {
+                      setState(() {
+                        _dateRangeMode = m.$1;
+                      });
+                    }
+                  }
+                },
+                selectedColor: AppColors.primary.withAlpha(30),
+                labelStyle: TextStyle(
+                  color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  fontSize: 13,
+                ),
+              ),
+            );
+          }).toList(),
+        ),
       ),
     );
   }
@@ -290,7 +485,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AppColors.surfaceVariant,
                 shape: BoxShape.circle,
               ),
@@ -314,7 +509,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             const SizedBox(height: 8),
             Text(
               noAppointmentsAtAll
-                  ? 'This day is clear. Use the button below to book a walk-in.'
+                  ? 'This range is clear. Use the button below to book a walk-in.'
                   : 'Try selecting a different status filter.',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: AppColors.textSecondary,

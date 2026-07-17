@@ -142,11 +142,26 @@ class Appointment {
       return DateTime.now();
     }
 
-    final rawAnalysis = json['analysisResults'] as List<dynamic>?;
-    final parsedAnalysis = rawAnalysis
-        ?.whereType<Map<String, dynamic>>()
-        .map(AnalysisTag.fromJson)
-        .toList();
+    List<AnalysisTag>? parsedAnalysis;
+    final rawAnalysis = json['analysisResults'];
+    if (rawAnalysis is List) {
+      parsedAnalysis = rawAnalysis
+          .whereType<Map<String, dynamic>>()
+          .map(AnalysisTag.fromJson)
+          .toList();
+    } else if (rawAnalysis is Map<String, dynamic>) {
+      final label = rawAnalysis['diseaseLabel'] as String? ?? '';
+      final conf = (rawAnalysis['confidencePercentage'] as num?)?.toDouble() ?? 0.0;
+      parsedAnalysis = [
+        AnalysisTag(tag: label, confidence: conf / 100.0),
+      ];
+    } else if (rawAnalysis is Map) {
+      final label = rawAnalysis['diseaseLabel'] as String? ?? '';
+      final conf = (rawAnalysis['confidencePercentage'] as num?)?.toDouble() ?? 0.0;
+      parsedAnalysis = [
+        AnalysisTag(tag: label, confidence: conf / 100.0),
+      ];
+    }
 
     return Appointment(
       id: documentId ?? (json['id'] as String?) ?? '',

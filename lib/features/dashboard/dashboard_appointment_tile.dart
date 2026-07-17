@@ -16,10 +16,12 @@ class DashboardAppointmentTile extends StatelessWidget {
     super.key,
     required this.appointment,
     required this.onTap,
+    this.showDate = false,
   });
 
   final Appointment appointment;
   final VoidCallback onTap;
+  final bool showDate;
 
   @override
   Widget build(BuildContext context) {
@@ -48,19 +50,31 @@ class DashboardAppointmentTile extends StatelessWidget {
                 Container(
                   width: 76,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 16,
+                    horizontal: 8,
+                    vertical: 12,
                   ),
                   color: AppColors.surfaceVariant,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      if (showDate) ...[
+                        Text(
+                          '${_monthAbbr(appointment.appointmentDateTime.month)} ${appointment.appointmentDateTime.day}',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.primary,
+                            fontSize: 10,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 4),
+                      ],
                       Text(
                         format12Hour(appointment.startTime),
                         style: theme.textTheme.labelLarge?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: AppColors.textPrimary,
-                          fontSize: 12, // adjust size to fit AM/PM nicely
+                          fontSize: 11, // adjust size to fit AM/PM nicely
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -69,7 +83,7 @@ class DashboardAppointmentTile extends StatelessWidget {
                         format12Hour(appointment.endTime),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: AppColors.textSecondary,
-                          fontSize: 10,
+                          fontSize: 9,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -166,6 +180,15 @@ class DashboardAppointmentTile extends StatelessWidget {
       AppointmentStatus.completed => 'Completed',
       AppointmentStatus.noShow => 'No-Show',
     };
+  }
+
+  String _monthAbbr(int month) {
+    const months = [
+      '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    if (month < 1 || month > 12) return '';
+    return months[month];
   }
 }
 

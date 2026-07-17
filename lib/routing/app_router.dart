@@ -21,6 +21,7 @@ import '../features/walk_in_booking/walk_in_booking_screen.dart';
 import '../features/services_admin/services_screen.dart';
 import '../features/settings/settings_screen.dart';
 import '../features/staff_management/staff_screen.dart';
+import '../features/calendar/calendar_screen.dart';
 
 // ---------- Route name constants ----------
 
@@ -30,6 +31,7 @@ abstract final class AppRoutes {
   static const reviewQueue = 'review-queue';
   static const walkInNew = 'walk-in-new';
   static const appointmentDetail = 'appointment-detail';
+  static const calendar = 'calendar';
   static const services = 'services';
   static const settings = 'settings';
   static const staff = 'staff';
@@ -112,6 +114,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/dashboard',
             name: AppRoutes.dashboard,
             builder: (_, __) => const DashboardScreen(),
+          ),
+          GoRoute(
+            path: '/calendar',
+            name: AppRoutes.calendar,
+            builder: (_, __) => const CalendarScreen(),
           ),
           GoRoute(
             path: '/review-queue',

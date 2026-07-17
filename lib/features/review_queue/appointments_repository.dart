@@ -52,6 +52,42 @@ class AppointmentsRepository {
     });
   }
 
+  /// Streams all appointments in a given calendar month.
+  /// Returns a flat list; callers can group by [date] field for badge counts.
+  Stream<List<Appointment>> watchAppointmentsByMonth(int year, int month) {
+    String pad(int n) => n.toString().padLeft(2, '0');
+    final firstDay = '$year-${pad(month)}-01';
+    // Last day = day 0 of next month
+    final lastDayDate = DateTime(year, month + 1, 0);
+    final lastDay = '$year-${pad(month)}-${pad(lastDayDate.day)}';
+
+    return _collection
+        .where('date', isGreaterThanOrEqualTo: firstDay)
+        .where('date', isLessThanOrEqualTo: lastDay)
+        .orderBy('date', descending: false)
+        .orderBy('startTime', descending: false)
+        .snapshots()
+        .map((snap) => snap.docs
+            .map((doc) => Appointment.fromJson(doc.data(), documentId: doc.id))
+            .toList());
+  }
+
+  /// Streams all appointments between [startDate] and [endDate] inclusive
+  /// (both "YYYY-MM-DD" strings), sorted by appointmentDateTime.
+  /// Used by the Dashboard date-range filter.
+  Stream<List<Appointment>> watchAppointmentsByDateRange(
+      String startDate, String endDate) {
+    return _collection
+        .where('date', isGreaterThanOrEqualTo: startDate)
+        .where('date', isLessThanOrEqualTo: endDate)
+        .orderBy('date', descending: false)
+        .orderBy('startTime', descending: false)
+        .snapshots()
+        .map((snap) => snap.docs
+            .map((doc) => Appointment.fromJson(doc.data(), documentId: doc.id))
+            .toList());
+  }
+
   // ---------- Direct Writes ----------
   // Note: Status transitions go through updateAppointmentStatus Cloud Function.
   // Direct writes are limited to fields allowed by firestore.rules for staff.
@@ -90,4 +126,22 @@ final appointmentsByDateProvider =
   return ref
       .watch(appointmentsRepositoryProvider)
       .watchAppointmentsByDate(dateStr);
+});
+
+/// Streams all appointments in a given month. Key: (year, month).
+/// Used by the Calendar screen to compute per-day count badges.
+final appointmentsByMonthProvider = StreamProvider.family<List<Appointment>,
+    ({int year, int month})>((ref, params) {
+  return ref
+      .watch(appointmentsRepositoryProvider)
+      .watchAppointmentsByMonth(params.year, params.month);
+});
+
+/// Streams all appointments between two date strings (inclusive).
+/// Used by the Dashboard date-range filter.
+final appointmentsByDateRangeProvider = StreamProvider.family<List<Appointment>,
+    ({String start, String end})>((ref, params) {
+  return ref
+      .watch(appointmentsRepositoryProvider)
+      .watchAppointmentsByDateRange(params.start, params.end);
 });
