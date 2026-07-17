@@ -7,11 +7,13 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/models/appointment.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/time_formatter.dart';
+import '../../features/review_queue/appointments_repository.dart';
 
-class DashboardAppointmentTile extends StatelessWidget {
+class DashboardAppointmentTile extends ConsumerWidget {
   const DashboardAppointmentTile({
     super.key,
     required this.appointment,
@@ -24,7 +26,7 @@ class DashboardAppointmentTile extends StatelessWidget {
   final bool showDate;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final statusColor = _statusColor(appointment.status);
     final statusLabel = _statusLabel(appointment.status);
@@ -129,8 +131,33 @@ class DashboardAppointmentTile extends StatelessWidget {
                                 children: [
                                   _SourceBadge(
                                       source: appointment.bookingSource),
-                                  if (appointment.paid) ...[
-                                    const SizedBox(width: 6),
+                                  if (appointment.status == AppointmentStatus.confirmed ||
+                                      appointment.status == AppointmentStatus.completed) ...[
+                                    const SizedBox(width: 8),
+                                    _PaidToggleChip(
+                                      paid: appointment.paid,
+                                      onTap: () async {
+                                        try {
+                                          await ref
+                                              .read(appointmentsRepositoryProvider)
+                                              .updatePaymentStatus(
+                                                appointment.id,
+                                                !appointment.paid,
+                                              );
+                                        } catch (e) {
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text('Failed to update payment: $e'),
+                                                backgroundColor: AppColors.error,
+                                              ),
+                                            );
+                                          }
+                                        }
+                                      },
+                                    ),
+                                  ] else if (appointment.paid) ...[
+                                    const SizedBox(width: 8),
                                     _PaidBadge(),
                                   ],
                                 ],
@@ -248,6 +275,8 @@ class _SourceBadge extends StatelessWidget {
 }
 
 class _PaidBadge extends StatelessWidget {
+  const _PaidBadge();
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -262,6 +291,54 @@ class _PaidBadge extends StatelessWidget {
           color: AppColors.success,
           fontSize: 10,
           fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+class _PaidToggleChip extends StatelessWidget {
+  const _PaidToggleChip({
+    required this.paid,
+    required this.onTap,
+  });
+
+  final bool paid;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = paid ? AppColors.success : AppColors.textSecondary;
+    final bgColor = paid ? AppColors.success.withAlpha(20) : AppColors.border.withAlpha(120);
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(4),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: color.withAlpha(40)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              paid ? Icons.check_circle_outline : Icons.pending_outlined,
+              size: 10,
+              color: color,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              paid ? 'Paid' : 'Unpaid',
+              style: TextStyle(
+                color: color,
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
         ),
       ),
     );

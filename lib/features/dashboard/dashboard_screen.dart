@@ -190,12 +190,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       appointmentsByDateRangeProvider((start: startStr, end: endStr)),
     );
 
+    final appointmentsCount = appointmentsAsync.asData?.value.length ?? 0;
+
     return Scaffold(
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // ── Header ──────────────────────────────────────────
-          _buildHeader(theme),
+          _buildHeader(theme, appointmentsCount),
 
           // ── Date Range Choice Chips ────────────────────────
           _buildDateRangeChips(theme),
@@ -267,7 +269,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   // ---------- Sub-builders ----------
 
-  Widget _buildHeader(ThemeData theme) {
+  Widget _buildHeader(ThemeData theme, int totalCount) {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
       color: AppColors.surface,
@@ -285,17 +287,38 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     color: AppColors.textPrimary,
                   ),
                 ),
-                if (_isToday)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Text(
-                      'Today',
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    if (_isToday) ...[
+                      Text(
+                        'Today',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                    ),
-                  ),
+                      const SizedBox(width: 8),
+                      Container(
+                        width: 4,
+                        height: 4,
+                        decoration: const BoxDecoration(
+                          color: AppColors.textDisabled,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    if (totalCount > 0)
+                      Text(
+                        '$totalCount appointment${totalCount == 1 ? '' : 's'}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                  ],
+                ),
               ],
             ),
           ),

@@ -54,9 +54,16 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
       );
 
       if (mounted) {
+        final displayStatus = switch (newStatus) {
+          'confirmed' => 'confirmed',
+          'completed' => 'marked as completed',
+          'no-show' => 'marked as no-show',
+          'cancelled' => 'cancelled',
+          _ => 'updated',
+        };
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Appointment has been updated to $newStatus.'),
+            content: Text('Appointment $displayStatus.'),
             backgroundColor: AppColors.success,
           ),
         );
@@ -177,6 +184,37 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
             child: const Text('Dismiss'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmAction({
+    required String title,
+    required String message,
+    required VoidCallback onConfirm,
+    Color? confirmButtonColor,
+  }) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Go Back'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              onConfirm();
+            },
+            style: confirmButtonColor != null
+                ? ElevatedButton.styleFrom(backgroundColor: confirmButtonColor)
+                : null,
+            child: const Text('Confirm'),
           ),
         ],
       ),
@@ -551,14 +589,28 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
               ElevatedButton.icon(
                 icon: const Icon(Icons.done_all),
                 label: const Text('Mark Completed'),
-                onPressed: () => _updateStatus('completed'),
+                onPressed: () {
+                  _confirmAction(
+                    title: 'Mark Completed',
+                    message: 'Are you sure you want to mark this appointment as completed?',
+                    onConfirm: () => _updateStatus('completed'),
+                    confirmButtonColor: AppColors.success,
+                  );
+                },
                 style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
               ),
               const SizedBox(height: 12),
               OutlinedButton.icon(
                 icon: const Icon(Icons.person_off_outlined),
                 label: const Text('Mark No-Show'),
-                onPressed: () => _updateStatus('no-show'),
+                onPressed: () {
+                  _confirmAction(
+                    title: 'Mark No-Show',
+                    message: 'Are you sure you want to mark this appointment as a no-show?',
+                    onConfirm: () => _updateStatus('no-show'),
+                    confirmButtonColor: AppColors.warning,
+                  );
+                },
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.warning,
                   side: const BorderSide(color: AppColors.warning),

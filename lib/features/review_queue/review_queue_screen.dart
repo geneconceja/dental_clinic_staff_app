@@ -114,7 +114,7 @@ class _ReviewQueueScreenState extends ConsumerState<ReviewQueueScreen> {
                       crossAxisCount: crossAxisCount,
                       crossAxisSpacing: 20,
                       mainAxisSpacing: 20,
-                      mainAxisExtent: 220, // Adjust card height
+                      mainAxisExtent: 240, // Adjust card height
                     ),
                     itemCount: appointments.length,
                     itemBuilder: (context, index) {

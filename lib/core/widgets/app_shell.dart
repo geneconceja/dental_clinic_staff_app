@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 
 import '../theme/app_colors.dart';
 import '../../features/auth/auth_providers.dart';
+import '../../features/review_queue/appointments_repository.dart';
 import '../../routing/app_router.dart';
 
 class AppShell extends ConsumerWidget {
@@ -28,9 +29,11 @@ class AppShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final role = ref.watch(currentRoleProvider);
     final profileAsync = ref.watch(staffProfileProvider);
+    final pendingAsync = ref.watch(pendingAppointmentsProvider);
     final theme = Theme.of(context);
 
     final isAdmin = role == 'admin';
+    final pendingCount = pendingAsync.asData?.value.length ?? 0;
 
     return Scaffold(
       body: Row(
@@ -68,6 +71,7 @@ class AppShell extends ConsumerWidget {
                         label: 'Review Queue',
                         active: currentRoute == '/review-queue',
                         onTap: () => context.goNamed(AppRoutes.reviewQueue),
+                        badgeCount: pendingCount,
                       ),
                       _SidebarItem(
                         icon: Icons.person_add_outlined,
@@ -246,12 +250,14 @@ class _SidebarItem extends StatelessWidget {
     required this.label,
     required this.active,
     required this.onTap,
+    this.badgeCount,
   });
 
   final IconData icon;
   final String label;
   final bool active;
   final VoidCallback onTap;
+  final int? badgeCount;
 
   @override
   Widget build(BuildContext context) {
@@ -283,6 +289,24 @@ class _SidebarItem extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (badgeCount != null && badgeCount! > 0) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.error,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '$badgeCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
