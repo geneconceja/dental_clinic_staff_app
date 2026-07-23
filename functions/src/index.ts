@@ -30,3 +30,8 @@ export { updateAppointmentStatus } from "./updateAppointmentStatus";
 // Phase 6 — Notifications
 export { sendReminders } from "./sendReminders";
 export { onAppointmentStatusChange } from "./onAppointmentStatusChange";
+
+// Phase 7 — Mobile-to-Web SSO Engine
+export { generateSsoToken } from "./generateSsoToken";
+export { consumeSsoToken } from "./consumeSsoToken";
+

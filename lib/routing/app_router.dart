@@ -15,6 +15,7 @@ import '../core/widgets/app_shell.dart';
 import '../core/widgets/patient_app_shell.dart';
 import '../features/auth/auth_providers.dart';
 import '../features/auth/login_screen.dart';
+import '../features/auth/sso_exchange_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
 import '../features/patient_portal/patient_appointments_screen.dart';
 import '../features/patient_portal/patient_booking_wizard_screen.dart';
@@ -67,6 +68,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       if (isLoading) return null;
 
       final onLoginPage = state.matchedLocation == '/login';
+      final onSsoPage = state.matchedLocation == '/sso';
+
+      if (onSsoPage) return null;
 
       // Not logged in → always go to login
       if (!isLoggedIn) {
@@ -122,6 +126,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/login',
         name: AppRoutes.login,
         builder: (_, __) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/sso',
+        name: 'sso',
+        builder: (context, state) {
+          final token = state.uri.queryParameters['token'] ?? '';
+          final target = state.uri.queryParameters['target'] ?? '/patient/dashboard';
+          return SsoExchangeScreen(token: token, targetPath: target);
+        },
       ),
       ShellRoute(
         builder: (context, state, child) {
