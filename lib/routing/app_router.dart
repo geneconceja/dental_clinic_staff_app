@@ -28,6 +28,7 @@ import '../features/calendar/calendar_screen.dart';
 abstract final class AppRoutes {
   static const login = 'login';
   static const dashboard = 'dashboard';
+  static const patientDashboard = 'patient-dashboard';
   static const reviewQueue = 'review-queue';
   static const walkInNew = 'walk-in-new';
   static const appointmentDetail = 'appointment-detail';
@@ -64,20 +65,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return onLoginPage ? null : '/login';
       }
 
-      // Logged in + on login page → wait for profile to resolve before redirecting to dashboard
+      // Logged in + on login page → wait for profile to resolve before redirecting
       if (onLoginPage) {
         final profileState = ref.read(staffProfileProvider);
         if (profileState.isLoading) return null;
 
         final profile = profileState.asData?.value;
         if (profile != null && profile.active) {
-          return '/dashboard';
+          return profile.role.name == 'patient'
+              ? '/patient/dashboard'
+              : '/dashboard';
         }
-        return null; // stay on login page (login screen's _submit handles the signout and error display)
+        return null; // stay on login page
       }
 
-      // While the staff profile is loading, stay on the current route.
-      // The router notifier will trigger a redirect re-evaluation when the profile resolves.
+      // While the staff/patient profile is loading, stay on current route.
       final profileState = ref.read(staffProfileProvider);
       if (profileState.isLoading) return null;
 
@@ -88,11 +90,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return '/login';
       }
 
-      // Admin-only route check
+      // Role-based route protection
       final role = profile.role.name;
       const adminOnlyPaths = ['/services', '/settings', '/staff'];
-      final isAdminOnly = adminOnlyPaths.contains(state.matchedLocation);
-      if (isAdminOnly && role != 'admin') return '/403';
+      const staffPaths = ['/dashboard', '/calendar', '/review-queue', '/walk-in/new'];
+
+      final isStaffPath = staffPaths.contains(state.matchedLocation) ||
+          state.matchedLocation.startsWith('/appointment/');
+      final isAdminPath = adminOnlyPaths.contains(state.matchedLocation);
+
+      // Patient attempting to visit staff or admin routes ➔ redirect to patient dashboard
+      if (role == 'patient' && (isStaffPath || isAdminPath)) {
+        return '/patient/dashboard';
+      }
+
+      // Non-admin staff attempting to visit admin-only routes ➔ 403
+      if (role != 'admin' && isAdminPath) {
+        return '/403';
+      }
 
       return null;
     },
@@ -101,6 +116,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/login',
         name: AppRoutes.login,
         builder: (_, __) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/patient/dashboard',
+        name: AppRoutes.patientDashboard,
+        builder: (_, __) => const Scaffold(
+          body: Center(
+            child: Text(
+              'Patient Portal Dashboard (Phase 2 Auth Verified)',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
       ),
       ShellRoute(
         builder: (context, state, child) {

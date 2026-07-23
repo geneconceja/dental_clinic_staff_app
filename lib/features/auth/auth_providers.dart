@@ -43,7 +43,19 @@ final staffProfileProvider = FutureProvider<StaffUser?>(
 );
 
 /// Convenience provider exposing just the role string, or null.
-/// Used by the router guard to distinguish admin from staff.
+/// Used by the router guard to distinguish admin, staff, and patient.
 final currentRoleProvider = Provider<String?>((ref) {
   return ref.watch(staffProfileProvider).asData?.value?.role.name;
+});
+
+/// Convenience provider returning true if the currently logged in user is a patient.
+final isPatientProvider = Provider<bool>((ref) {
+  final role = ref.watch(currentRoleProvider);
+  return role == 'patient';
+});
+
+/// Convenience provider returning true if the logged in user is staff or admin.
+final isStaffOrAdminProvider = Provider<bool>((ref) {
+  final role = ref.watch(currentRoleProvider);
+  return role == 'staff' || role == 'admin';
 });
