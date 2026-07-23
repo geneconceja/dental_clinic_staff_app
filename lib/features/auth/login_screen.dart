@@ -96,12 +96,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
-                            'Staff Sign In',
+                            'Sign In',
                             style: theme.textTheme.titleLarge,
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Clinic staff and admin access only.',
+                            'Sign in to access your clinic portal account.',
                             style: theme.textTheme.bodySmall,
                           ),
                           const SizedBox(height: 28),
@@ -229,7 +229,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
         const SizedBox(height: 4),
         Text(
-          'Staff Portal',
+          'Dental Clinic Portal',
           style: theme.textTheme.bodyMedium?.copyWith(
             color: AppColors.textSecondary,
           ),

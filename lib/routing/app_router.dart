@@ -12,6 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../core/theme/app_colors.dart';
 import '../core/widgets/app_shell.dart';
+import '../core/widgets/patient_app_shell.dart';
 import '../features/auth/auth_providers.dart';
 import '../features/auth/login_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
@@ -29,6 +30,9 @@ abstract final class AppRoutes {
   static const login = 'login';
   static const dashboard = 'dashboard';
   static const patientDashboard = 'patient-dashboard';
+  static const patientBook = 'patient-book';
+  static const patientAppointments = 'patient-appointments';
+  static const patientProfile = 'patient-profile';
   static const reviewQueue = 'review-queue';
   static const walkInNew = 'walk-in-new';
   static const appointmentDetail = 'appointment-detail';
@@ -117,17 +121,63 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: AppRoutes.login,
         builder: (_, __) => const LoginScreen(),
       ),
-      GoRoute(
-        path: '/patient/dashboard',
-        name: AppRoutes.patientDashboard,
-        builder: (_, __) => const Scaffold(
-          body: Center(
-            child: Text(
-              'Patient Portal Dashboard (Phase 2 Auth Verified)',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      ShellRoute(
+        builder: (context, state, child) {
+          return PatientAppShell(
+            currentRoute: state.matchedLocation,
+            child: child,
+          );
+        },
+        routes: [
+          GoRoute(
+            path: '/patient/dashboard',
+            name: AppRoutes.patientDashboard,
+            builder: (_, __) => const Scaffold(
+              body: Center(
+                child: Text(
+                  'Patient Dashboard Workspace (Phase 3 Shell Enabled)',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
             ),
           ),
-        ),
+          GoRoute(
+            path: '/patient/book',
+            name: AppRoutes.patientBook,
+            builder: (_, __) => const Scaffold(
+              body: Center(
+                child: Text(
+                  'Patient Booking Wizard (Phase 5)',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ),
+          GoRoute(
+            path: '/patient/appointments',
+            name: AppRoutes.patientAppointments,
+            builder: (_, __) => const Scaffold(
+              body: Center(
+                child: Text(
+                  'My Appointments History (Phase 6)',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ),
+          GoRoute(
+            path: '/patient/profile',
+            name: AppRoutes.patientProfile,
+            builder: (_, __) => const Scaffold(
+              body: Center(
+                child: Text(
+                  'My Profile (Phase 4)',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       ShellRoute(
         builder: (context, state, child) {
