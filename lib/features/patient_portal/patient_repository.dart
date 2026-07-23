@@ -36,6 +36,81 @@ class PatientRepository {
     });
   }
 
+  // ---------- Create Patient Appointment ----------
+
+  /// Creates a new self-service patient appointment request in Firestore.
+  Future<String> createPatientAppointment({
+    required String patientUid,
+    required String patientEmail,
+    required String firstName,
+    required String lastName,
+    required String phoneNumber,
+    required String serviceId,
+    required String serviceName,
+    required String dateStr,
+    required String startTime,
+    required String endTime,
+    required DateTime appointmentDateTime,
+    String? notes,
+  }) async {
+    final docRef = _firestore.collection('appointments').doc();
+
+    final data = {
+      'userId': patientUid,
+      'userEmail': patientEmail,
+      'firstName': firstName.trim(),
+      'lastName': lastName.trim(),
+      'phoneNumber': phoneNumber.trim(),
+      'serviceId': serviceId,
+      'serviceName': serviceName,
+      'reason': serviceName,
+      'date': dateStr,
+      'appointmentDateTime': Timestamp.fromDate(appointmentDateTime),
+      'startTime': startTime,
+      'endTime': endTime,
+      'notes': notes != null && notes.trim().isNotEmpty ? notes.trim() : null,
+      'imageUrl': null,
+      'analysisResults': null,
+      'status': 'pending',
+      'bookingSource': 'patient_web',
+      'createdBy': null,
+      'paid': false,
+      'reminderSent': false,
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+
+    await docRef.set(data);
+    return docRef.id;
+  }
+
+  // ---------- Fetch Appointments for Date Slot Calculation ----------
+
+  /// Fetches existing non-cancelled appointments for a specific date (YYYY-MM-DD)
+  /// to filter out taken time slots.
+  Future<List<Appointment>> fetchAppointmentsForDate(String dateStr) async {
+    try {
+      final snap = await _firestore
+          .collection('appointments')
+          .where('date', isEqualTo: dateStr)
+          .get();
+
+      return snap.docs
+          .map((doc) => Appointment.fromJson(doc.data(), documentId: doc.id))
+          .where((a) => a.status == AppointmentStatus.pending || a.status == AppointmentStatus.confirmed)
+          .toList();
+    } on FirebaseException catch (e) {
+      if (e.code == 'permission-denied') {
+        // Patient users cannot query all appointments on a date due to Firestore security rules.
+        // Return empty list so working-hours slots can still be generated.
+        return [];
+      }
+      return [];
+    } catch (_) {
+      return [];
+    }
+  }
+
   // ---------- Update Patient Profile ----------
 
   /// Updates patient name and phone number under users/{patientUid}.

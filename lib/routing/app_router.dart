@@ -16,6 +16,7 @@ import '../core/widgets/patient_app_shell.dart';
 import '../features/auth/auth_providers.dart';
 import '../features/auth/login_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
+import '../features/patient_portal/patient_booking_wizard_screen.dart';
 import '../features/patient_portal/patient_dashboard_screen.dart';
 import '../features/patient_portal/patient_profile_screen.dart';
 import '../features/review_queue/review_queue_screen.dart';
@@ -71,12 +72,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return onLoginPage ? null : '/login';
       }
 
+      final profileState = ref.read(staffProfileProvider);
+
+      // While the staff/patient profile is loading/resolving, stay on current route.
+      if (profileState.isLoading || profileState.isRefreshing || !profileState.hasValue) {
+        return null;
+      }
+
+      final profile = profileState.asData?.value;
+
       // Logged in + on login page → wait for profile to resolve before redirecting
       if (onLoginPage) {
-        final profileState = ref.read(staffProfileProvider);
-        if (profileState.isLoading) return null;
-
-        final profile = profileState.asData?.value;
         if (profile != null && profile.active) {
           return profile.role.name == 'patient'
               ? '/patient/dashboard'
@@ -85,14 +91,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return null; // stay on login page
       }
 
-      // While the staff/patient profile is loading, stay on current route.
-      final profileState = ref.read(staffProfileProvider);
-      if (profileState.isLoading) return null;
-
-      final profile = profileState.asData?.value;
       if (profile == null || !profile.active) {
-        // Deactivated or invalid profile → sign out and boot to login
-        ref.read(authRepositoryProvider).signOut();
         return '/login';
       }
 
@@ -139,14 +138,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/patient/book',
             name: AppRoutes.patientBook,
-            builder: (_, __) => const Scaffold(
-              body: Center(
-                child: Text(
-                  'Patient Booking Wizard (Phase 5)',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
+            builder: (_, __) => const PatientBookingWizardScreen(),
           ),
           GoRoute(
             path: '/patient/appointments',
