@@ -125,4 +125,37 @@ class PatientRepository {
       'updatedAt': FieldValue.serverTimestamp(),
     });
   }
+
+  // ---------- Patient Cancellation & Rescheduling ----------
+
+  /// Cancels an existing appointment request owned by the patient.
+  Future<void> cancelPatientAppointment({
+    required String appointmentId,
+    String? reason,
+  }) async {
+    await _firestore.collection('appointments').doc(appointmentId).update({
+      'status': 'cancelled',
+      if (reason != null && reason.trim().isNotEmpty) 'cancellationReason': reason.trim(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  /// Reschedules an existing appointment to a new date & time slot.
+  /// Resets status to 'pending' for staff re-review.
+  Future<void> reschedulePatientAppointment({
+    required String appointmentId,
+    required String dateStr,
+    required String startTime,
+    required String endTime,
+    required DateTime appointmentDateTime,
+  }) async {
+    await _firestore.collection('appointments').doc(appointmentId).update({
+      'date': dateStr,
+      'startTime': startTime,
+      'endTime': endTime,
+      'appointmentDateTime': Timestamp.fromDate(appointmentDateTime),
+      'status': 'pending',
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
 }

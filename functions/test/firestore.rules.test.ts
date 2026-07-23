@@ -210,6 +210,35 @@ describe("appointments collection", () => {
       })
     );
   });
+
+  test("owning patient CAN cancel their appointment with a cancellationReason", async () => {
+    await seedAppointmentOwnedByPatient();
+
+    const patientCtx = testEnv.authenticatedContext(PATIENT_UID);
+    await assertSucceeds(
+      patientCtx.firestore().collection("appointments").doc(APPOINTMENT_ID).update({
+        status: "cancelled",
+        cancellationReason: "Schedule conflict",
+        updatedAt: new Date(),
+      })
+    );
+  });
+
+  test("owning patient CAN reschedule their appointment date and time", async () => {
+    await seedAppointmentOwnedByPatient();
+
+    const patientCtx = testEnv.authenticatedContext(PATIENT_UID);
+    await assertSucceeds(
+      patientCtx.firestore().collection("appointments").doc(APPOINTMENT_ID).update({
+        date: "2026-08-10",
+        startTime: "10:00",
+        endTime: "10:30",
+        appointmentDateTime: new Date("2026-08-10T10:00:00Z"),
+        status: "pending",
+        updatedAt: new Date(),
+      })
+    );
+  });
 });
 
 describe("users collection", () => {

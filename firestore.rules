@@ -123,7 +123,13 @@ service cloud.firestore {
           isOwningPatient(resource.data)
           && resource.data.status in ['pending', 'confirmed']
           && request.resource.data.status == 'cancelled'
-          && onlyStatusFieldChanged()
+          && onlyPatientCancellationFieldsChanged()
+        )
+        || (
+          isOwningPatient(resource.data)
+          && resource.data.status in ['pending', 'confirmed']
+          && request.resource.data.status == 'pending'
+          && onlyPatientRescheduleFieldsChanged()
         );
 
       allow delete: if false; // soft-delete via status only, never hard delete
@@ -137,6 +143,16 @@ service cloud.firestore {
       function onlyStatusFieldChanged() {
         return request.resource.data.diff(resource.data).affectedKeys()
           .hasOnly(['status', 'updatedAt']);
+      }
+
+      function onlyPatientCancellationFieldsChanged() {
+        return request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status', 'cancellationReason', 'updatedAt']);
+      }
+
+      function onlyPatientRescheduleFieldsChanged() {
+        return request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['date', 'startTime', 'endTime', 'appointmentDateTime', 'status', 'updatedAt']);
       }
 
       function onlyStaffManagedFieldsChanged() {

@@ -16,6 +16,7 @@ import '../core/widgets/patient_app_shell.dart';
 import '../features/auth/auth_providers.dart';
 import '../features/auth/login_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
+import '../features/patient_portal/patient_appointments_screen.dart';
 import '../features/patient_portal/patient_booking_wizard_screen.dart';
 import '../features/patient_portal/patient_dashboard_screen.dart';
 import '../features/patient_portal/patient_profile_screen.dart';
@@ -143,14 +144,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/patient/appointments',
             name: AppRoutes.patientAppointments,
-            builder: (_, __) => const Scaffold(
-              body: Center(
-                child: Text(
-                  'My Appointments History (Phase 6)',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
+            builder: (_, __) => const PatientAppointmentsScreen(),
           ),
           GoRoute(
             path: '/patient/profile',
