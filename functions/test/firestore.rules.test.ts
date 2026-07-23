@@ -197,4 +197,51 @@ describe("appointments collection", () => {
       })
     );
   });
+
+  test("patient CAN create a pending appointment for themselves with bookingSource patient_web", async () => {
+    const patientCtx = testEnv.authenticatedContext(PATIENT_UID);
+    await assertSucceeds(
+      patientCtx.firestore().collection("appointments").doc("new-patient-web-appt").set({
+        userId: PATIENT_UID,
+        status: "pending",
+        bookingSource: "patient_web",
+        firstName: "Jane",
+        lastName: "Doe",
+      })
+    );
+  });
+});
+
+describe("users collection", () => {
+  test("patient can read their own user profile document", async () => {
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await context.firestore().collection("users").doc(PATIENT_UID).set({
+        uid: PATIENT_UID,
+        role: "patient",
+        name: "Test Patient",
+        email: "patient@test.com",
+      });
+    });
+
+    const patientCtx = testEnv.authenticatedContext(PATIENT_UID);
+    await assertSucceeds(
+      patientCtx.firestore().collection("users").doc(PATIENT_UID).get()
+    );
+  });
+
+  test("patient CANNOT read another patient's user profile document", async () => {
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await context.firestore().collection("users").doc(PATIENT_UID).set({
+        uid: PATIENT_UID,
+        role: "patient",
+        name: "Test Patient",
+        email: "patient@test.com",
+      });
+    });
+
+    const otherPatientCtx = testEnv.authenticatedContext(OTHER_PATIENT_UID);
+    await assertFails(
+      otherPatientCtx.firestore().collection("users").doc(PATIENT_UID).get()
+    );
+  });
 });

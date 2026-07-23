@@ -38,11 +38,13 @@ enum AppointmentStatus {
 
 enum BookingSource {
   patientApp,
+  patientWeb,
   staffWalkin;
 
   static BookingSource fromString(String? val) {
     return switch (val) {
       'patient_app' || 'patientApp' => BookingSource.patientApp,
+      'patient_web' || 'patientWeb' => BookingSource.patientWeb,
       'staff_walkin' || 'staffWalkin' => BookingSource.staffWalkin,
       _ => BookingSource.patientApp, // fallback default for legacy documents
     };
@@ -51,6 +53,7 @@ enum BookingSource {
   String toJson() {
     return switch (this) {
       BookingSource.patientApp => 'patient_app',
+      BookingSource.patientWeb => 'patient_web',
       BookingSource.staffWalkin => 'staff_walkin',
     };
   }

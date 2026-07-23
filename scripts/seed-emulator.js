@@ -40,6 +40,7 @@ async function seed() {
     { email: "admin@clinic.test", password: "password123", role: "admin", name: "Dr. Santos (Admin)" },
     { email: "staff1@clinic.test", password: "password123", role: "staff", name: "Maria (Front Desk)" },
     { email: "staff2@clinic.test", password: "password123", role: "staff", name: "Jun (Front Desk)" },
+    { email: "patient1@clinic.test", password: "password123", role: "patient", name: "Juan Dela Cruz (Patient)" },
   ];
 
   const staffUids = {};

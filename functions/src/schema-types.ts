@@ -23,21 +23,24 @@ export type AppointmentStatus =
   | "completed"
   | "no-show";
 
-export type BookingSource = "patient_app" | "staff_walkin";
+export type BookingSource = "patient_app" | "patient_web" | "staff_walkin";
 
+export type UserRole = "patient" | "staff" | "admin";
 export type StaffRole = "staff" | "admin";
 
-// ---------- users/{uid} — staff/admin accounts only ----------
+// ---------- users/{uid} — patient/staff/admin accounts ----------
 
-export interface StaffUser {
+export interface UserDocument {
   uid: string;
-  role: StaffRole;
+  role: UserRole;
   name: string;
   email: string;
   phone: string;
   active: boolean;
   createdAt: FirebaseFirestore.Timestamp;
 }
+
+export type StaffUser = UserDocument;
 
 // ---------- services/{serviceId} ----------
 

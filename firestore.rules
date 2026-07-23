@@ -47,14 +47,11 @@ service cloud.firestore {
         && appointmentData.userId == request.auth.uid;
     }
 
-    // ---------- users (staff/admin accounts only) ----------
+    // ---------- users (patient, staff, admin accounts) ----------
 
     match /users/{uid} {
-      allow read: if isStaffOrAdmin();
-      // Staff accounts are created by an admin flow / Cloud Function, not
-      // arbitrary client writes. Allow a signed-in staff user to update only
-      // their own non-role fields (name/phone) if you build a profile-edit
-      // screen; role changes should go through an admin-only Cloud Function.
+      allow read: if isStaffOrAdmin() || (isSignedIn() && request.auth.uid == uid);
+      // Staff/admin and patient profile edits: allow users to update their own non-role fields
       allow update: if isAdmin()
         || (isSignedIn() && request.auth.uid == uid && request.resource.data.role == resource.data.role);
       allow create, delete: if isAdmin();
@@ -110,7 +107,11 @@ service cloud.firestore {
       // Rule: any signed-in user may create a pending appointment for themselves.
       allow create: if isSignedIn()
         && request.resource.data.userId == request.auth.uid
-        && request.resource.data.status == 'pending';
+        && request.resource.data.status == 'pending'
+        && (
+          !('bookingSource' in request.resource.data)
+          || request.resource.data.bookingSource in ['patient_app', 'patient_web']
+        );
 
       allow update: if isStaffOrAdmin()
           && isValidStatusTransition(resource.data.status, request.resource.data.status)

@@ -8,11 +8,13 @@ library;
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum StaffRole {
+  patient,
   staff,
   admin;
 
   static StaffRole fromString(String? role) {
     if (role == 'admin') return StaffRole.admin;
+    if (role == 'patient') return StaffRole.patient;
     return StaffRole.staff;
   }
 
