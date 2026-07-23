@@ -55,6 +55,13 @@ class _WalkInBookingScreenState extends ConsumerState<WalkInBookingScreen> {
   String? _slotConflictError;
 
   @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _selectedDate = DateTime(now.year, now.month, now.day);
+  }
+
+  @override
   void dispose() {
     _firstNameCtrl.dispose();
     _lastNameCtrl.dispose();
@@ -420,11 +427,24 @@ class _DatePickerField extends ConsumerWidget {
       onPressed: () async {
         final settings = settingsAsync.asData?.value;
         final today = DateTime.now();
+        final cleanToday = DateTime(today.year, today.month, today.day);
+        var initial = selectedDate ?? cleanToday;
+
+        if (settings != null && !isClinicOpen(initial, settings)) {
+          for (int i = 0; i < 30; i++) {
+            final candidate = cleanToday.add(Duration(days: i));
+            if (isClinicOpen(candidate, settings)) {
+              initial = candidate;
+              break;
+            }
+          }
+        }
+
         final picked = await showDatePicker(
           context: context,
-          initialDate: selectedDate ?? today,
-          firstDate: today,
-          lastDate: today.add(const Duration(days: 180)),
+          initialDate: initial,
+          firstDate: cleanToday,
+          lastDate: cleanToday.add(const Duration(days: 180)),
           selectableDayPredicate: settings == null
               ? null
               : (day) => isClinicOpen(day, settings),
