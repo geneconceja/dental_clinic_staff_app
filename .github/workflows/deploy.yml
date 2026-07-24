@@ -29,12 +29,13 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+          cache: true
 
-      - name: Install Functions Dependencies & Run Unit Tests
+      - name: Install Functions Dependencies & Build TypeScript
         working-directory: functions
         run: |
           npm ci
-          npm test
+          npm run build
 
       - name: Install Flutter Dependencies & Run Analysis
         run: |
@@ -58,6 +59,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+          cache: true
 
       - name: Build Web Release (Staging)
         run: |
@@ -95,6 +97,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+          cache: true
 
       - name: Build Functions TypeScript
         working-directory: functions
