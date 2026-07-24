@@ -51,10 +51,35 @@ service cloud.firestore {
 
     match /users/{uid} {
       allow read: if isStaffOrAdmin() || (isSignedIn() && request.auth.uid == uid);
-      // Staff/admin and patient profile edits: allow users to update their own non-role fields
+
+      // Staff/admin and patient profile edits: allow users to update their own non-role fields.
       allow update: if isAdmin()
-        || (isSignedIn() && request.auth.uid == uid && request.resource.data.role == resource.data.role);
-      allow create, delete: if isAdmin();
+        // Staff updating their own non-role fields.
+        || (isSignedIn() && request.auth.uid == uid && request.resource.data.role == resource.data.role)
+        // Patient marking themselves verified (only allowed field change: isVerified true, updatedAt).
+        || (
+          isSignedIn()
+          && request.auth.uid == uid
+          && resource.data.role == 'patient'
+          && request.resource.data.role == 'patient'
+          && request.resource.data.isVerified == true
+          && resource.data.isVerified == false
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isVerified', 'updatedAt'])
+        );
+
+      // Patients may self-create their own document during signup.
+      // The document must be for themselves, role must be 'patient',
+      // and isVerified must start as false (cannot self-grant verification).
+      allow create: if isAdmin()
+        || (
+          isSignedIn()
+          && request.auth.uid == uid
+          && request.resource.data.role == 'patient'
+          && request.resource.data.active == true
+          && request.resource.data.isVerified == false
+        );
+
+      allow delete: if isAdmin();
     }
 
     // ---------- services ----------

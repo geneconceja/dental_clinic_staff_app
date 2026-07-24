@@ -30,6 +30,9 @@ class StaffUser {
     required this.phone,
     required this.active,
     required this.createdAt,
+    this.firstName,
+    this.lastName,
+    this.isVerified = false,
   });
 
   final String uid;
@@ -39,6 +42,16 @@ class StaffUser {
   final String phone;
   final bool active;
   final DateTime createdAt;
+
+  /// Split first name (used for patient profile; null for staff accounts).
+  final String? firstName;
+
+  /// Split last name (used for patient profile; null for staff accounts).
+  final String? lastName;
+
+  /// True once the patient has clicked the Firebase email-verification link.
+  /// Always true for staff/admin (they are provisioned by admin, not self-signup).
+  final bool isVerified;
 
   bool get isAdmin => role == StaffRole.admin;
 
@@ -57,6 +70,10 @@ class StaffUser {
       phone: (json['phone'] as String?) ?? '',
       active: (json['active'] as bool?) ?? false,
       createdAt: parseDateTime(json['createdAt']),
+      firstName: json['firstName'] as String?,
+      lastName: json['lastName'] as String?,
+      // Staff/admin accounts are pre-provisioned — treat missing field as verified.
+      isVerified: (json['isVerified'] as bool?) ?? true,
     );
   }
 
@@ -69,6 +86,9 @@ class StaffUser {
       'phone': phone,
       'active': active,
       'createdAt': Timestamp.fromDate(createdAt),
+      if (firstName != null) 'firstName': firstName,
+      if (lastName != null) 'lastName': lastName,
+      'isVerified': isVerified,
     };
   }
 
@@ -80,6 +100,9 @@ class StaffUser {
     String? phone,
     bool? active,
     DateTime? createdAt,
+    String? firstName,
+    String? lastName,
+    bool? isVerified,
   }) {
     return StaffUser(
       uid: uid ?? this.uid,
@@ -89,6 +112,9 @@ class StaffUser {
       phone: phone ?? this.phone,
       active: active ?? this.active,
       createdAt: createdAt ?? this.createdAt,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      isVerified: isVerified ?? this.isVerified,
     );
   }
 }

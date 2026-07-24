@@ -41,7 +41,6 @@ async function seed() {
     { email: "staff1@clinic.test", password: "password123", role: "staff", name: "Maria (Front Desk)" },
     { email: "staff2@clinic.test", password: "password123", role: "staff", name: "Jun (Front Desk)" },
     { email: "patient1@clinic.test", password: "password123", role: "patient", name: "Juan Dela Cruz (Patient)" },
-    { email: "geneconceja@gmail.com", password: "password123", role: "patient", name: "Gene Conceja (Patient)" },
   ];
 
   const staffUids = {};
@@ -337,10 +336,10 @@ async function seed() {
     // -----------------------------------------------------------------------
     {
       id: "appt-notify-test",
-      userId: staffUids["patient_geneconceja@gmail.com"],
-      userEmail: "geneconceja@gmail.com",
-      firstName: "Gene",
-      lastName: "Conceja",
+      userId: staffUids["patient_patient1@clinic.test"],
+      userEmail: "patient1@clinic.test",
+      firstName: "Juan",
+      lastName: "Dela Cruz",
       phoneNumber: "09171234567",
       serviceId: "svc-cleaning",
       serviceName: "Teeth Cleaning",

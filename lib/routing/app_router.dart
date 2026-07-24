@@ -7,6 +7,7 @@
 /// in later phases.
 library;
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -15,7 +16,9 @@ import '../core/widgets/app_shell.dart';
 import '../core/widgets/patient_app_shell.dart';
 import '../features/auth/auth_providers.dart';
 import '../features/activity_logs/activity_logs_screen.dart';
+import '../features/auth/email_verification_gate_screen.dart';
 import '../features/auth/login_screen.dart';
+import '../features/auth/patient_signup_screen.dart';
 import '../features/auth/sso_exchange_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
 import '../features/patient_portal/patient_appointments_screen.dart';
@@ -34,6 +37,8 @@ import '../features/calendar/calendar_screen.dart';
 
 abstract final class AppRoutes {
   static const login = 'login';
+  static const signUp = 'signUp';
+  static const emailVerification = 'emailVerification';
   static const dashboard = 'dashboard';
   static const patientDashboard = 'patient-dashboard';
   static const patientBook = 'patient-book';
@@ -68,14 +73,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // While auth is loading, don't redirect — stay on current route.
       if (isLoading) return null;
 
-      final onLoginPage = state.matchedLocation == '/login';
-      final onSsoPage = state.matchedLocation == '/sso';
+      final location = state.matchedLocation;
+      final onLoginPage = location == '/login';
+      final onSsoPage = location == '/sso';
+      final onSignUpPage = location == '/signup';
+      final onVerificationPage = location == '/email-verification';
 
-      if (onSsoPage) return null;
+      // Public routes — always accessible, even signed out.
+      if (onSsoPage || onSignUpPage) return null;
 
-      // Not logged in → always go to login
+      // Not logged in → always go to login (except public routes above)
       if (!isLoggedIn) {
-        return onLoginPage ? null : '/login';
+        return (onLoginPage) ? null : '/login';
       }
 
       final profileState = ref.read(staffProfileProvider);
@@ -87,18 +96,47 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       final profile = profileState.asData?.value;
 
-      // Logged in + on login page → wait for profile to resolve before redirecting
+      // A patient is considered verified if EITHER:
+      //   (a) Firestore profile.isVerified is true (the normal production state), OR
+      //   (b) FirebaseAuth.currentUser.emailVerified is true but Firestore hasn't been
+      //       synced yet (e.g. emulator UI shortcut, or returning from email link).
+      // The gate screen's _autoCheckOnLoad will sync Firestore in case (b).
+      final firebaseVerified =
+          FirebaseAuth.instance.currentUser?.emailVerified ?? false;
+
+      bool effectivelyVerified(bool firestoreVerified) =>
+          firestoreVerified || firebaseVerified;
+
+      // Logged in + on login page → redirect to the right home for the role.
       if (onLoginPage) {
         if (profile != null && profile.active) {
-          return profile.role.name == 'patient'
-              ? '/patient/dashboard'
-              : '/dashboard';
+          if (profile.role.name == 'patient') {
+            return effectivelyVerified(profile.isVerified)
+                ? '/patient/dashboard'
+                : '/email-verification';
+          }
+          return '/dashboard';
         }
         return null; // stay on login page
       }
 
       if (profile == null || !profile.active) {
         return '/login';
+      }
+
+      // Unverified patient (neither Firestore nor Firebase Auth says verified)
+      // trying to access anything other than the gate → send to gate.
+      if (profile.role.name == 'patient' &&
+          !effectivelyVerified(profile.isVerified) &&
+          !onVerificationPage) {
+        return '/email-verification';
+      }
+
+      // Patient is effectively verified and is on the gate → move them along.
+      if (profile.role.name == 'patient' &&
+          effectivelyVerified(profile.isVerified) &&
+          onVerificationPage) {
+        return '/patient/dashboard';
       }
 
       // Role-based route protection
@@ -127,6 +165,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/login',
         name: AppRoutes.login,
         builder: (_, __) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/signup',
+        name: AppRoutes.signUp,
+        builder: (_, __) => const PatientSignUpScreen(),
+      ),
+      GoRoute(
+        path: '/email-verification',
+        name: AppRoutes.emailVerification,
+        builder: (_, __) => const EmailVerificationGateScreen(),
       ),
       GoRoute(
         path: '/sso',
