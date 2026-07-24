@@ -5,7 +5,7 @@
   "main": "lib/src/index.js",
   "scripts": {
     "build": "tsc",
-    "test": "jest --runInBand --forceExit"
+    "test": "jest --runInBand"
   },
   "keywords": [],
   "author": "",
