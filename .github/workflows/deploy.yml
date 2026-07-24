@@ -1,0 +1,120 @@
+name: Dental Clinic Staff App CI/CD
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Job 1: Quality Checks & Unit Testing
+  # ---------------------------------------------------------------------------
+  quality_checks:
+    name: Lint & Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: 'functions/package-lock.json'
+
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
+          cache: true
+
+      - name: Install Functions Dependencies & Run Unit Tests
+        run: |
+          cd functions
+          npm ci
+          npm test
+
+      - name: Install Flutter Dependencies & Run Analysis
+        run: |
+          flutter pub get
+          dart analyze
+          flutter test
+
+  # ---------------------------------------------------------------------------
+  # Job 2: Deploy Staging Preview Channel (Pull Requests)
+  # ---------------------------------------------------------------------------
+  preview_deploy:
+    name: Deploy Preview Channel (PR)
+    needs: quality_checks
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
+          cache: true
+
+      - name: Build Web Release (Staging)
+        run: |
+          flutter pub get
+          flutter build web --release --dart-define=ENV=dev
+
+      - name: Deploy to Firebase Hosting Preview Channel
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_ORALSCOPE_78CDA }}'
+          projectId: oralscope-78cda
+          channelId: 'pr-${{ github.event.number }}'
+
+  # ---------------------------------------------------------------------------
+  # Job 3: Production Deployment (Push to Main/Master)
+  # ---------------------------------------------------------------------------
+  production_deploy:
+    name: Deploy to Production
+    needs: quality_checks
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: 'functions/package-lock.json'
+
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
+          cache: true
+
+      - name: Build Functions TypeScript
+        run: |
+          cd functions
+          npm ci
+          npm run build
+
+      - name: Build Flutter Web Release
+        run: |
+          flutter pub get
+          flutter build web --release --dart-define=ENV=prod
+
+      - name: Deploy to Firebase (Hosting, Functions, Firestore Rules)
+        uses: w9jds/firebase-action@v13.4.0
+        with:
+          args: deploy --project=oralscope-78cda --force
+        env:
+          GCP_SA_KEY: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_ORALSCOPE_78CDA }}'
