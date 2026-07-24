@@ -33,8 +33,8 @@ jobs:
           cache: true
 
       - name: Install Functions Dependencies & Run Unit Tests
+        working-directory: functions
         run: |
-          cd functions
           npm ci
           npm test
 
@@ -103,8 +103,8 @@ jobs:
           cache: true
 
       - name: Build Functions TypeScript
+        working-directory: functions
         run: |
-          cd functions
           npm ci
           npm run build
 
