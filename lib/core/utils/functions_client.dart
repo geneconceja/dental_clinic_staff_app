@@ -58,12 +58,16 @@ class FunctionsClient {
     dynamic data,
   }) async {
     try {
+      print('[FunctionsClient] Calling $functionName with data: $data');
       final callable = _functions.httpsCallable(functionName);
       final result = await callable.call(data);
+      print('[FunctionsClient] Response from $functionName: ${result.data}');
       return result.data as T;
     } on FirebaseFunctionsException catch (e) {
+      print('[FunctionsClient] FirebaseFunctionsException [$functionName]: code=${e.code}, msg=${e.message}, details=${e.details}');
       throw _mapException(e);
-    } catch (e) {
+    } catch (e, stack) {
+      print('[FunctionsClient] Unknown error [$functionName]: $e\n$stack');
       throw UnknownFunctionsException(e.toString());
     }
   }

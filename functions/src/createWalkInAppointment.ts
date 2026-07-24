@@ -336,6 +336,6 @@ export async function createWalkInAppointmentHandler(
 // ---------- The exported callable Cloud Function ----------
 
 export const createWalkInAppointment = onCall(
-  { maxInstances: 10 },
+  { cors: true, maxInstances: 10 },
   createWalkInAppointmentHandler
 );

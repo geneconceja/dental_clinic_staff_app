@@ -56,6 +56,12 @@ export async function updateAppointmentStatusHandler(
   request: CallableRequest<unknown>
 ): Promise<UpdateAppointmentStatusOutput> {
   try {
+    logger.info(">>> UPDATE APPOINTMENT STATUS ENTERED", {
+      authUid: request.auth?.uid,
+      authEmail: request.auth?.token.email,
+      data: request.data,
+    });
+
     const db = getFirestore();
 
     // ------------------------------------------------------------------
@@ -178,16 +184,19 @@ export async function updateAppointmentStatusHandler(
     };
   } catch (error: any) {
     logger.error("Crashed in updateAppointmentStatusHandler:", {
-      message: error.message,
-      stack: error.stack,
+      message: error?.message || String(error),
+      stack: error?.stack,
     });
-    throw error;
+    if (error instanceof HttpsError) {
+      throw error;
+    }
+    throw new HttpsError("internal", error?.message || "Internal function error");
   }
 }
 
 // ---------- The exported callable Cloud Function ----------
 
 export const updateAppointmentStatus = onCall(
-  { maxInstances: 10 },
+  { cors: true, maxInstances: 10 },
   updateAppointmentStatusHandler
 );

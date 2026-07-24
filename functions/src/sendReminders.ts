@@ -25,17 +25,10 @@
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { getFirestore, Timestamp, FieldValue } from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
-import { Resend } from "resend";
 import { Appointment, ClinicSettings } from "./schema-types";
+import { sendBrevoEmail } from "./brevoService";
 
 // ---------- Constants ----------
-
-/**
- * Sender address. Must be from a Resend-verified domain in production.
- * For testing without a custom domain, use "onboarding@resend.dev".
- * Replace with your verified domain address before going live.
- */
-const FROM_ADDRESS = "OralScope Clinic <onboarding@resend.dev>";
 
 const CLINIC_NAME = "OralScope Dental Clinic";
 
@@ -178,18 +171,7 @@ export const sendReminders = onSchedule(
     if (appointments.length === 0) return;
 
     // ------------------------------------------------------------------
-    // Step 4: Check API key
-    // ------------------------------------------------------------------
-    const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey) {
-      logger.warn("sendReminders: RESEND_API_KEY not set — skipping all sends");
-      return;
-    }
-
-    const resend = new Resend(apiKey);
-
-    // ------------------------------------------------------------------
-    // Step 5: Send reminders
+    // Step 4: Send reminders
     // ------------------------------------------------------------------
     for (const appt of appointments) {
       const docId = appt._docId;
@@ -207,25 +189,17 @@ export const sendReminders = onSchedule(
       const hoursAway = (apptMs - now.getTime()) / (1000 * 60 * 60);
 
       const subject = `Appointment reminder — ${CLINIC_NAME}`;
-      const html = buildReminderEmailHtml(appt, hoursAway);
+      const htmlContent = buildReminderEmailHtml(appt, hoursAway);
+      const toName = `${appt.firstName} ${appt.lastName}`;
 
-      try {
-        const { error } = await resend.emails.send({
-          from: FROM_ADDRESS,
-          to: [appt.userEmail],
-          subject,
-          html,
-        });
+      const res = await sendBrevoEmail({
+        toEmail: appt.userEmail,
+        toName: toName,
+        subject: subject,
+        htmlContent: htmlContent,
+      });
 
-        if (error) {
-          logger.error("sendReminders: Resend API error", {
-            appointmentId: docId,
-            error,
-          });
-          // Do NOT set reminderSent=true — retry on next run
-          continue;
-        }
-
+      if (res.success) {
         // Mark reminder as sent
         await db
           .collection("appointments")
@@ -236,10 +210,10 @@ export const sendReminders = onSchedule(
           appointmentId: docId,
           to: appt.userEmail,
         });
-      } catch (err: any) {
-        logger.error("sendReminders: unexpected error for appointment", {
+      } else {
+        logger.error("sendReminders: Brevo dispatch error", {
           appointmentId: docId,
-          message: err.message,
+          error: res.error,
         });
         // Do NOT set reminderSent=true — retry on next run
       }

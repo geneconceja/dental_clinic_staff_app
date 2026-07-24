@@ -22,7 +22,7 @@ interface ConsumeSsoTokenResponse {
 }
 
 export const consumeSsoToken = onCall<ConsumeSsoTokenData>(
-  { cors: [/localhost/, /127\.0\.0\.1/, "*"] },
+  { cors: true },
   async (request): Promise<ConsumeSsoTokenResponse> => {
     const ssoToken = request.data?.ssoToken;
     if (!ssoToken || typeof ssoToken !== "string" || ssoToken.trim().length === 0) {

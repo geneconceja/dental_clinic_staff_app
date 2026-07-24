@@ -21,7 +21,7 @@ interface GenerateSsoTokenResponse {
 }
 
 export const generateSsoToken = onCall<GenerateSsoTokenData>(
-  { cors: [/localhost/, /127\.0\.0\.1/, "*"] },
+  { cors: true },
   async (request): Promise<GenerateSsoTokenResponse> => {
     // 1. Verify caller authentication
     if (!request.auth) {

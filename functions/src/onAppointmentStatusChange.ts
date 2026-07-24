@@ -19,17 +19,10 @@
 
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
 import * as logger from "firebase-functions/logger";
-import { Resend } from "resend";
 import { Appointment } from "./schema-types";
+import { sendBrevoEmail } from "./brevoService";
 
 // ---------- Constants ----------
-
-/**
- * Sender address. Must be from a Resend-verified domain in production.
- * For testing without a custom domain, use "onboarding@resend.dev".
- * Replace with your verified domain address before going live.
- */
-const FROM_ADDRESS = "OralScope Clinic <onboarding@resend.dev>";
 
 const CLINIC_NAME = "OralScope Dental Clinic";
 
@@ -107,7 +100,7 @@ function buildCancelledEmailHtml(appt: Appointment): string {
         <p style="margin-top: 0;">Hi <strong>${patientName}</strong>,</p>
         <p>Your appointment at <strong>${CLINIC_NAME}</strong> scheduled for <strong>${dateStr}</strong> at <strong>${timeStr}</strong> has been cancelled.</p>
         ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ""}
-        <p>To reschedule, please contact us or book a new appointment through the OralScope patient app.</p>
+        <p>To reschedule, please contact us or book a new appointment through the OralScope patient portal.</p>
         <p style="margin-bottom: 0; color: #555; font-size: 13px;">This is an automated message from ${CLINIC_NAME}. Please do not reply to this email.</p>
       </div>
     </div>
@@ -144,7 +137,7 @@ export const onAppointmentStatusChange = onDocumentUpdated(
       hasEmail: !!userEmail,
     });
 
-    // Only notify patient-app bookings with an email
+    // Only notify patient bookings with an email
     if (!userEmail || bookingSource === "staff_walkin") {
       logger.info("onAppointmentStatusChange: skipping — walk-in or no email", {
         appointmentId,
@@ -160,52 +153,23 @@ export const onAppointmentStatusChange = onDocumentUpdated(
       return;
     }
 
-    // Check API key
-    const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey) {
-      logger.warn(
-        "onAppointmentStatusChange: RESEND_API_KEY not set — skipping email send"
-      );
-      return;
-    }
-
-    const resend = new Resend(apiKey);
-
     const subject =
       newStatus === "confirmed"
         ? `Your appointment is confirmed — ${CLINIC_NAME}`
         : `Your appointment has been cancelled — ${CLINIC_NAME}`;
 
-    const html =
+    const htmlContent =
       newStatus === "confirmed"
         ? buildConfirmedEmailHtml(after)
         : buildCancelledEmailHtml(after);
 
-    try {
-      const { error } = await resend.emails.send({
-        from: FROM_ADDRESS,
-        to: [userEmail],
-        subject,
-        html,
-      });
+    const toName = `${after.firstName} ${after.lastName}`;
 
-      if (error) {
-        logger.error("onAppointmentStatusChange: Resend API error", {
-          appointmentId,
-          error,
-        });
-      } else {
-        logger.info("onAppointmentStatusChange: email sent successfully", {
-          appointmentId,
-          to: userEmail,
-          subject,
-        });
-      }
-    } catch (err: any) {
-      logger.error("onAppointmentStatusChange: unexpected error sending email", {
-        appointmentId,
-        message: err.message,
-      });
-    }
+    await sendBrevoEmail({
+      toEmail: userEmail,
+      toName: toName,
+      subject: subject,
+      htmlContent: htmlContent,
+    });
   }
 );
