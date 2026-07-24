@@ -377,85 +377,97 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Widget _buildDayRow(String label, DailyHours hours, Function(DailyHours) onUpdated) {
     final isOpen = hours.isOpen;
+    final isMobile = MediaQuery.of(context).size.width < 520;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          // Day name + Open Toggle Switch
-          SizedBox(
-            width: 140,
+    final toggleHeader = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Switch(
+          value: isOpen,
+          activeTrackColor: AppColors.primary.withAlpha(120),
+          activeThumbColor: AppColors.primary,
+          onChanged: (val) {
+            onUpdated(DailyHours(
+              open: val ? '09:00' : null,
+              close: val ? '17:00' : null,
+              isOpen: val,
+            ));
+            setState(() {});
+          },
+        ),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ],
+    );
+
+    final timePickers = isOpen
+        ? SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                Switch(
-                  value: isOpen,
-                  activeTrackColor: AppColors.primary.withAlpha(120),
-                  activeThumbColor: AppColors.primary,
-                  onChanged: (val) {
+                TextButton.icon(
+                  icon: const Icon(Icons.access_time, size: 16),
+                  label: Text('Open: ${hours.open ?? "09:00"}'),
+                  onPressed: () => _selectTime(context, hours, isOpen,
+                      isOpenTime: true, onSelected: (time) {
                     onUpdated(DailyHours(
-                      open: val ? '09:00' : null,
-                      close: val ? '17:00' : null,
-                      isOpen: val,
+                      open: time,
+                      close: hours.close,
+                      isOpen: isOpen,
                     ));
                     setState(() {});
-                  },
+                  }),
                 ),
                 const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    label,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
+                const Text('to'),
+                const SizedBox(width: 8),
+                TextButton.icon(
+                  icon: const Icon(Icons.access_time, size: 16),
+                  label: Text('Close: ${hours.close ?? "17:00"}'),
+                  onPressed: () => _selectTime(context, hours, isOpen,
+                      isOpenTime: false, onSelected: (time) {
+                    onUpdated(DailyHours(
+                      open: hours.open,
+                      close: time,
+                      isOpen: isOpen,
+                    ));
+                    setState(() {});
+                  }),
                 ),
               ],
             ),
-          ),
-          const SizedBox(width: 16),
+          )
+        : const Padding(
+            padding: EdgeInsets.only(left: 12),
+            child: Text(
+              'Closed',
+              style: TextStyle(color: AppColors.textDisabled, fontStyle: FontStyle.italic),
+            ),
+          );
 
-          // Working times selector
-          if (isOpen) ...[
-            TextButton.icon(
-              icon: const Icon(Icons.access_time, size: 16),
-              label: Text('Open: ${hours.open ?? "09:00"}'),
-              onPressed: () => _selectTime(context, hours, isOpen,
-                  isOpenTime: true, onSelected: (time) {
-                onUpdated(DailyHours(
-                  open: time,
-                  close: hours.close,
-                  isOpen: isOpen,
-                ));
-                setState(() {});
-              }),
-            ),
-            const SizedBox(width: 12),
-            const Text('to'),
-            const SizedBox(width: 12),
-            TextButton.icon(
-              icon: const Icon(Icons.access_time, size: 16),
-              label: Text('Close: ${hours.close ?? "17:00"}'),
-              onPressed: () => _selectTime(context, hours, isOpen,
-                  isOpenTime: false, onSelected: (time) {
-                onUpdated(DailyHours(
-                  open: hours.open,
-                  close: time,
-                  isOpen: isOpen,
-                ));
-                setState(() {});
-              }),
-            ),
-          ] else
-            const Padding(
-              padding: EdgeInsets.only(left: 12),
-              child: Text(
-                'Closed',
-                style: TextStyle(
-                  color: AppColors.textDisabled,
-                  fontStyle: FontStyle.italic,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: isMobile
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                toggleHeader,
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: timePickers,
                 ),
-              ),
+              ],
+            )
+          : Row(
+              children: [
+                SizedBox(width: 140, child: toggleHeader),
+                const SizedBox(width: 16),
+                Expanded(child: timePickers),
+              ],
             ),
-        ],
-      ),
     );
   }
 

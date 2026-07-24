@@ -44,11 +44,9 @@ class CalendarDayPanel extends ConsumerWidget {
     final weekday = weekdays[selectedDay.weekday - 1];
     final month = months[selectedDay.month - 1];
 
-    return SizedBox(
-      width: 360,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
           // ── Panel Header ───────────────────────────────────────
           Container(
             padding: const EdgeInsets.fromLTRB(20, 18, 12, 16),
@@ -154,8 +152,7 @@ class CalendarDayPanel extends ConsumerWidget {
             ),
           ),
         ],
-      ),
-    );
+      );
   }
 }
 

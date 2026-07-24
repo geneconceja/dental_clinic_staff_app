@@ -27,6 +27,8 @@ class _ActivityLogsScreenState extends ConsumerState<ActivityLogsScreen> {
     final logsAsync = ref.watch(activityLogsStreamProvider);
     final theme = Theme.of(context);
 
+    final isMobile = MediaQuery.of(context).size.width < 480;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('System Activity Audit Logs'),
@@ -48,7 +50,9 @@ class _ActivityLogsScreenState extends ConsumerState<ActivityLogsScreen> {
               children: [
                 TextField(
                   decoration: InputDecoration(
-                    hintText: 'Search by actor email, action, or resource ID...',
+                    hintText: isMobile
+                        ? 'Search logs...'
+                        : 'Search by actor email, action, or resource ID...',
                     prefixIcon: const Icon(Icons.search),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),

@@ -105,7 +105,27 @@ class _ReviewQueueScreenState extends ConsumerState<ReviewQueueScreen> {
 
               return LayoutBuilder(
                 builder: (context, constraints) {
-                  // Grid-like layout for desktop widths, list layout for narrow widths
+                  final isMobile = constraints.maxWidth <= 600;
+
+                  if (isMobile) {
+                    return ListView.separated(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: appointments.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 16),
+                      itemBuilder: (context, index) {
+                        final appt = appointments[index];
+                        return AppointmentCard(
+                          appointment: appt,
+                          onConfirm: () => _confirmAppointment(appt.id, appt.patientFullName),
+                          onReview: () => context.goNamed(
+                            AppRoutes.appointmentDetail,
+                            pathParameters: {'id': appt.id},
+                          ),
+                        );
+                      },
+                    );
+                  }
+
                   final crossAxisCount = constraints.maxWidth > 900 ? 2 : 1;
 
                   return GridView.builder(
@@ -114,7 +134,7 @@ class _ReviewQueueScreenState extends ConsumerState<ReviewQueueScreen> {
                       crossAxisCount: crossAxisCount,
                       crossAxisSpacing: 20,
                       mainAxisSpacing: 20,
-                      mainAxisExtent: 240, // Adjust card height
+                      mainAxisExtent: 260,
                     ),
                     itemCount: appointments.length,
                     itemBuilder: (context, index) {

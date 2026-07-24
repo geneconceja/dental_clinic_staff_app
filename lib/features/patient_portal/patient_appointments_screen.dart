@@ -25,46 +25,58 @@ class PatientAppointmentsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appointmentsAsync = ref.watch(patientAppointmentsProvider);
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
+    final headerText = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: const [
+        Text(
+          'My Appointments',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+        ),
+        SizedBox(height: 4),
+        Text(
+          'Manage your upcoming visits, past treatments, and cancellation history.',
+          style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+        ),
+      ],
+    );
+
+    final bookButton = ElevatedButton.icon(
+      onPressed: () => context.goNamed(AppRoutes.patientBook),
+      icon: const Icon(Icons.add),
+      label: const Text('Book New Appointment'),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
 
     return DefaultTabController(
       length: 3,
       child: Scaffold(
         backgroundColor: AppColors.background,
         body: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(isMobile ? 16 : 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        'My Appointments',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Manage your upcoming visits, past treatments, and cancellation history.',
-                        style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
-                      ),
-                    ],
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: () => context.goNamed(AppRoutes.patientBook),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Book New Appointment'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                  ),
-                ],
-              ),
+              if (isMobile) ...[
+                headerText,
+                const SizedBox(height: 12),
+                SizedBox(width: double.infinity, child: bookButton),
+              ] else ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(child: headerText),
+                    const SizedBox(width: 16),
+                    bookButton,
+                  ],
+                ),
+              ],
               const SizedBox(height: 20),
 
               // TabBar Navigation
@@ -196,13 +208,14 @@ class _AppointmentCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final canManage = appointment.status == AppointmentStatus.pending ||
         appointment.status == AppointmentStatus.confirmed;
+    final isMobile = MediaQuery.of(context).size.width < 500;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 2,
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(isMobile ? 14 : 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -237,26 +250,50 @@ class _AppointmentCard extends ConsumerWidget {
             // Service Title & Time Details
             Text(
               appointment.serviceName.isNotEmpty ? appointment.serviceName : appointment.reason,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+              style: TextStyle(fontSize: isMobile ? 16 : 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
             ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(Icons.calendar_today, size: 16, color: AppColors.textSecondary),
-                const SizedBox(width: 6),
-                Text(
-                  'Date: ${appointment.date}',
-                  style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
-                ),
-                const SizedBox(width: 20),
-                const Icon(Icons.access_time, size: 16, color: AppColors.textSecondary),
-                const SizedBox(width: 6),
-                Text(
-                  'Time: ${format12Hour(appointment.startTime)} – ${format12Hour(appointment.endTime)}',
-                  style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
-                ),
-              ],
-            ),
+            if (isMobile) ...[
+              Row(
+                children: [
+                  const Icon(Icons.calendar_today, size: 16, color: AppColors.textSecondary),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Date: ${appointment.date}',
+                    style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Icon(Icons.access_time, size: 16, color: AppColors.textSecondary),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Time: ${format12Hour(appointment.startTime)} – ${format12Hour(appointment.endTime)}',
+                    style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
+                  ),
+                ],
+              ),
+            ] else ...[
+              Row(
+                children: [
+                  const Icon(Icons.calendar_today, size: 16, color: AppColors.textSecondary),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Date: ${appointment.date}',
+                    style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
+                  ),
+                  const SizedBox(width: 20),
+                  const Icon(Icons.access_time, size: 16, color: AppColors.textSecondary),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Time: ${format12Hour(appointment.startTime)} – ${format12Hour(appointment.endTime)}',
+                    style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
+                  ),
+                ],
+              ),
+            ],
 
             if (appointment.cancellationReason != null && appointment.cancellationReason!.isNotEmpty) ...[
               const SizedBox(height: 10),
@@ -286,31 +323,37 @@ class _AppointmentCard extends ConsumerWidget {
             const SizedBox(height: 12),
 
             // Action Buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+            Wrap(
+              alignment: isMobile ? WrapAlignment.spaceBetween : WrapAlignment.end,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
               children: [
                 TextButton.icon(
                   onPressed: () => _showDetailsSheet(context, appointment),
                   icon: const Icon(Icons.visibility_outlined, size: 16),
                   label: const Text('View Details'),
                 ),
-                if (canManage) ...[
-                  const SizedBox(width: 8),
-                  OutlinedButton.icon(
-                    onPressed: () => _showRescheduleDialog(context, ref, appointment),
-                    icon: const Icon(Icons.edit_calendar, size: 16),
-                    label: const Text('Reschedule'),
+                if (canManage)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: () => _showRescheduleDialog(context, ref, appointment),
+                        icon: const Icon(Icons.edit_calendar, size: 16),
+                        label: const Text('Reschedule'),
+                      ),
+                      const SizedBox(width: 8),
+                      OutlinedButton.icon(
+                        onPressed: () => _showCancelDialog(context, ref, appointment),
+                        icon: const Icon(Icons.cancel_outlined, size: 16, color: AppColors.error),
+                        label: const Text('Cancel', style: TextStyle(color: AppColors.error)),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: AppColors.error),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  OutlinedButton.icon(
-                    onPressed: () => _showCancelDialog(context, ref, appointment),
-                    icon: const Icon(Icons.cancel_outlined, size: 16, color: AppColors.error),
-                    label: const Text('Cancel', style: TextStyle(color: AppColors.error)),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: AppColors.error),
-                    ),
-                  ),
-                ],
               ],
             ),
           ],
@@ -324,10 +367,11 @@ class _AppointmentCard extends ConsumerWidget {
   void _showDetailsSheet(BuildContext context, Appointment appt) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (ctx) => Padding(
+      builder: (ctx) => SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -336,9 +380,11 @@ class _AppointmentCard extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  appt.serviceName.isNotEmpty ? appt.serviceName : appt.reason,
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                Expanded(
+                  child: Text(
+                    appt.serviceName.isNotEmpty ? appt.serviceName : appt.reason,
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close),

@@ -205,36 +205,54 @@ class PatientAppShell extends ConsumerWidget {
           ),
         ),
       ],
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceVariant,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircleAvatar(
-              radius: 14,
-              backgroundColor: AppColors.primary,
-              child: Text(
-                patientName.isNotEmpty ? patientName[0].toUpperCase() : 'P',
-                style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-              ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isMobileView = MediaQuery.of(context).size.width <= 768;
+
+          return Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobileView ? 8 : 12,
+              vertical: 6,
             ),
-            const SizedBox(width: 8),
-            Text(
-              patientName,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceVariant,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppColors.border),
             ),
-            const Icon(Icons.arrow_drop_down, color: AppColors.textSecondary, size: 18),
-          ],
-        ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircleAvatar(
+                  radius: 14,
+                  backgroundColor: AppColors.primary,
+                  child: Text(
+                    patientName.isNotEmpty ? patientName[0].toUpperCase() : 'P',
+                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                if (!isMobileView) ...[
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      patientName,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const Icon(Icons.arrow_drop_down, color: AppColors.textSecondary, size: 18),
+                ] else ...[
+                  const SizedBox(width: 4),
+                  const Icon(Icons.arrow_drop_down, color: AppColors.textSecondary, size: 16),
+                ],
+              ],
+            ),
+          );
+        },
       ),
     );
   }

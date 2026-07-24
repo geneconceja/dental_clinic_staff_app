@@ -56,7 +56,7 @@ class _StaffScreenState extends ConsumerState<StaffScreen> {
               crossAxisCount: crossAxisCount,
               crossAxisSpacing: 20,
               mainAxisSpacing: 20,
-              mainAxisExtent: 220,
+              mainAxisExtent: screenWidth < 600 ? 230 : 220,
             ),
             itemCount: staffList.length,
             itemBuilder: (_, index) {

@@ -249,68 +249,68 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
 
           return Stack(
             children: [
-              SingleChildScrollView(
-                padding: const EdgeInsets.all(28),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1200),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final isWide = constraints.maxWidth > 800;
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isMobile = constraints.maxWidth < 600;
+                  final isWide = constraints.maxWidth > 800;
 
-                        if (isWide) {
-                          return Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Left Area
-                              Expanded(
-                                flex: 3,
-                                child: Column(
-                                  children: [
-                                    _buildInfoCard(appt, theme),
+                  final detailContent = isWide
+                      ? Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Left Area
+                            Expanded(
+                              flex: 3,
+                              child: Column(
+                                children: [
+                                  _buildInfoCard(appt, theme),
+                                  const SizedBox(height: 20),
+                                  if (appt.imageUrl != null) ...[
+                                    _buildDiagnosticCard(appt, theme),
                                     const SizedBox(height: 20),
-                                    if (appt.imageUrl != null) ...[
-                                      _buildDiagnosticCard(appt, theme),
-                                      const SizedBox(height: 20),
-                                    ],
                                   ],
-                                ),
+                                ],
                               ),
-                              const SizedBox(width: 24),
-                              // Right Area
-                              Expanded(
-                                flex: 2,
-                                child: Column(
-                                  children: [
-                                    _buildActionCenterCard(appt, theme),
-                                    const SizedBox(height: 20),
-                                    _buildNotesCard(appt, theme),
-                                  ],
-                                ),
+                            ),
+                            const SizedBox(width: 24),
+                            // Right Area
+                            Expanded(
+                              flex: 2,
+                              child: Column(
+                                children: [
+                                  _buildActionCenterCard(appt, theme),
+                                  const SizedBox(height: 20),
+                                  _buildNotesCard(appt, theme),
+                                ],
                               ),
-                            ],
-                          );
-                        } else {
-                          // Narrow View Stack
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _buildInfoCard(appt, theme),
+                            ),
+                          ],
+                        )
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _buildInfoCard(appt, theme),
+                            const SizedBox(height: 20),
+                            if (appt.imageUrl != null) ...[
+                              _buildDiagnosticCard(appt, theme),
                               const SizedBox(height: 20),
-                              if (appt.imageUrl != null) ...[
-                                _buildDiagnosticCard(appt, theme),
-                                const SizedBox(height: 20),
-                              ],
-                              _buildActionCenterCard(appt, theme),
-                              const SizedBox(height: 20),
-                              _buildNotesCard(appt, theme),
                             ],
-                          );
-                        }
-                      },
+                            _buildActionCenterCard(appt, theme),
+                            const SizedBox(height: 20),
+                            _buildNotesCard(appt, theme),
+                          ],
+                        );
+
+                  return SingleChildScrollView(
+                    padding: EdgeInsets.all(isMobile ? 16 : 28),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 1200),
+                        child: detailContent,
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
               if (_isProcessing)
                 Container(

@@ -88,11 +88,12 @@ class _PatientProfileScreenState extends ConsumerState<PatientProfileScreen> {
   Widget build(BuildContext context) {
     _populateFormOnce();
     final profile = ref.watch(staffProfileProvider).asData?.value;
+    final isMobile = MediaQuery.of(context).size.width < 480;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(isMobile ? 16 : 24),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),
@@ -113,7 +114,7 @@ class _PatientProfileScreenState extends ConsumerState<PatientProfileScreen> {
                 Card(
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   child: Padding(
-                    padding: const EdgeInsets.all(28),
+                    padding: EdgeInsets.all(isMobile ? 18 : 28),
                     child: Form(
                       key: _formKey,
                       child: Column(

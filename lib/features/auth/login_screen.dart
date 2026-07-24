@@ -70,12 +70,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isMobile = MediaQuery.of(context).size.width < 480;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(isMobile ? 12 : 24),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
             child: Column(
@@ -84,12 +85,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               children: [
                 // ---------- Logo / Branding ----------
                 _buildHeader(theme),
-                const SizedBox(height: 40),
+                SizedBox(height: isMobile ? 24 : 40),
 
                 // ---------- Card ----------
                 Card(
                   child: Padding(
-                    padding: const EdgeInsets.all(32),
+                    padding: EdgeInsets.all(isMobile ? 20 : 32),
                     child: Form(
                       key: _formKey,
                       child: Column(

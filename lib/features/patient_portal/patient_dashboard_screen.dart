@@ -28,10 +28,12 @@ class PatientDashboardScreen extends ConsumerWidget {
     final upcomingAppt = ref.watch(nextUpcomingAppointmentProvider);
     final allApptsAsync = ref.watch(patientAppointmentsProvider);
 
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(isMobile ? 16 : 24),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1000),
@@ -39,15 +41,15 @@ class PatientDashboardScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // ---------- Welcome Hero Banner ----------
-                _buildHeroBanner(patientName),
+                _buildHeroBanner(patientName, isMobile),
                 const SizedBox(height: 24),
 
                 // ---------- Upcoming Appointment Highlight ----------
-                _buildUpcomingCard(context, upcomingAppt),
+                _buildUpcomingCard(context, upcomingAppt, isMobile),
                 const SizedBox(height: 28),
 
                 // ---------- Quick Actions ----------
-                Text(
+                const Text(
                   'Quick Actions',
                   style: TextStyle(
                     fontSize: 18,
@@ -60,7 +62,7 @@ class PatientDashboardScreen extends ConsumerWidget {
                 const SizedBox(height: 32),
 
                 // ---------- Recent Activity ----------
-                Text(
+                const Text(
                   'Recent Activity',
                   style: TextStyle(
                     fontSize: 18,
@@ -80,9 +82,9 @@ class PatientDashboardScreen extends ConsumerWidget {
 
   // ---------- Welcome Hero Banner ----------
 
-  Widget _buildHeroBanner(String patientName) {
+  Widget _buildHeroBanner(String patientName, bool isMobile) {
     return Container(
-      padding: const EdgeInsets.all(28),
+      padding: EdgeInsets.all(isMobile ? 20 : 28),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [AppColors.primaryDark, AppColors.primary],
@@ -106,8 +108,8 @@ class PatientDashboardScreen extends ConsumerWidget {
               children: [
                 Text(
                   'Welcome back, $patientName! 👋',
-                  style: const TextStyle(
-                    fontSize: 24,
+                  style: TextStyle(
+                    fontSize: isMobile ? 20 : 24,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -115,12 +117,15 @@ class PatientDashboardScreen extends ConsumerWidget {
                 const SizedBox(height: 8),
                 const Text(
                   'Manage your dental visits, check upcoming schedule, and book new appointments easily.',
-                  style: TextStyle(fontSize: 14, color: Colors.white70),
+                  style: TextStyle(fontSize: 13, color: Colors.white70),
                 ),
               ],
             ),
           ),
-          const Icon(Icons.health_and_safety_outlined, size: 64, color: Colors.white24),
+          if (!isMobile) ...[
+            const SizedBox(width: 16),
+            const Icon(Icons.health_and_safety_outlined, size: 64, color: Colors.white24),
+          ],
         ],
       ),
     );
@@ -128,51 +133,75 @@ class PatientDashboardScreen extends ConsumerWidget {
 
   // ---------- Upcoming Appointment Card ----------
 
-  Widget _buildUpcomingCard(BuildContext context, Appointment? appt) {
+  Widget _buildUpcomingCard(BuildContext context, Appointment? appt, bool isMobile) {
     if (appt == null) {
+      final textContent = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          Text(
+            'No Upcoming Appointments',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+          ),
+          SizedBox(height: 4),
+          Text(
+            'Keep your smile healthy! Schedule your next checkup today.',
+            style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+          ),
+        ],
+      );
+
+      final bookButton = ElevatedButton.icon(
+        onPressed: () => context.goNamed(AppRoutes.patientBook),
+        icon: const Icon(Icons.add),
+        label: const Text('Book Now'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      );
+
       return Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryLight.withAlpha(30),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.event_available, color: AppColors.primary, size: 32),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
+          padding: EdgeInsets.all(isMobile ? 16 : 24),
+          child: isMobile
+              ? Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'No Upcoming Appointments',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryLight.withAlpha(30),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.event_available, color: AppColors.primary, size: 28),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(child: textContent),
+                      ],
                     ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Keep your smile healthy! Schedule your next dental checkup today.',
-                      style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                    const SizedBox(height: 16),
+                    SizedBox(width: double.infinity, child: bookButton),
+                  ],
+                )
+              : Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryLight.withAlpha(30),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.event_available, color: AppColors.primary, size: 32),
                     ),
+                    const SizedBox(width: 16),
+                    Expanded(child: textContent),
+                    bookButton,
                   ],
                 ),
-              ),
-              ElevatedButton.icon(
-                onPressed: () => context.goNamed(AppRoutes.patientBook),
-                icon: const Icon(Icons.add),
-                label: const Text('Book Now'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-              ),
-            ],
-          ),
         ),
       );
     }
@@ -189,7 +218,7 @@ class PatientDashboardScreen extends ConsumerWidget {
           borderRadius: BorderRadius.circular(12),
           border: Border(left: BorderSide(color: statusColor, width: 6)),
         ),
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(isMobile ? 16 : 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -216,31 +245,58 @@ class PatientDashboardScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             Text(
               appt.serviceName.isNotEmpty ? appt.serviceName : appt.reason,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+              style: TextStyle(fontSize: isMobile ? 18 : 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
             ),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                const Icon(Icons.calendar_today, size: 16, color: AppColors.textSecondary),
-                const SizedBox(width: 6),
-                Text(appt.date, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                const SizedBox(width: 20),
-                const Icon(Icons.access_time, size: 16, color: AppColors.textSecondary),
-                const SizedBox(width: 6),
-                Text('${appt.startTime} - ${appt.endTime}', style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-              ],
-            ),
+            if (isMobile) ...[
+              Row(
+                children: [
+                  const Icon(Icons.calendar_today, size: 16, color: AppColors.textSecondary),
+                  const SizedBox(width: 6),
+                  Text(appt.date, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  const Icon(Icons.access_time, size: 16, color: AppColors.textSecondary),
+                  const SizedBox(width: 6),
+                  Text('${appt.startTime} - ${appt.endTime}', style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                ],
+              ),
+            ] else ...[
+              Row(
+                children: [
+                  const Icon(Icons.calendar_today, size: 16, color: AppColors.textSecondary),
+                  const SizedBox(width: 6),
+                  Text(appt.date, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                  const SizedBox(width: 20),
+                  const Icon(Icons.access_time, size: 16, color: AppColors.textSecondary),
+                  const SizedBox(width: 6),
+                  Text('${appt.startTime} - ${appt.endTime}', style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                ],
+              ),
+            ],
             const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                OutlinedButton.icon(
-                  onPressed: () => context.goNamed(AppRoutes.patientAppointments),
-                  icon: const Icon(Icons.visibility_outlined, size: 16),
-                  label: const Text('View All Appointments'),
-                ),
-              ],
-            ),
+            isMobile
+                ? SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => context.goNamed(AppRoutes.patientAppointments),
+                      icon: const Icon(Icons.visibility_outlined, size: 16),
+                      label: const Text('View All Appointments'),
+                    ),
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: () => context.goNamed(AppRoutes.patientAppointments),
+                        icon: const Icon(Icons.visibility_outlined, size: 16),
+                        label: const Text('View All Appointments'),
+                      ),
+                    ],
+                  ),
           ],
         ),
       ),
@@ -260,7 +316,7 @@ class PatientDashboardScreen extends ConsumerWidget {
           physics: const NeverScrollableScrollPhysics(),
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
-          childAspectRatio: isCompact ? 3.0 : 1.6,
+          childAspectRatio: isCompact ? 2.5 : 1.6,
           children: [
             _QuickActionTile(
               title: 'Book Appointment',

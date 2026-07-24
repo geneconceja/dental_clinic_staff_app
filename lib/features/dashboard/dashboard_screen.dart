@@ -270,118 +270,133 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   // ---------- Sub-builders ----------
 
   Widget _buildHeader(ThemeData theme, int totalCount) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
-      color: AppColors.surface,
-      child: Row(
-        children: [
-          // Date display
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _getHeaderTitle(),
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    if (_isToday) ...[
-                      Text(
-                        'Today',
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        width: 4,
-                        height: 4,
-                        decoration: const BoxDecoration(
-                          color: AppColors.textDisabled,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                    if (totalCount > 0)
-                      Text(
-                        '$totalCount appointment${totalCount == 1 ? '' : 's'}',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+    final isMobile = MediaQuery.of(context).size.width < 600;
 
-          // Navigation controls
-          Row(
-            children: [
-              if (!_isToday)
-                TextButton(
-                  onPressed: _goToToday,
-                  child: const Text('Today'),
+    final dateTitleColumn = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          _getHeaderTitle(),
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+            fontSize: isMobile ? 18 : 22,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Row(
+          children: [
+            if (_isToday) ...[
+              Text(
+                'Today',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w700,
                 ),
-              const SizedBox(width: 4),
-              if (_dateRangeMode != _DateRangeMode.custom) ...[
-                IconButton(
-                  icon: const Icon(Icons.chevron_left),
-                  tooltip: _dateRangeMode == _DateRangeMode.today
-                      ? 'Previous day'
-                      : _dateRangeMode == _DateRangeMode.thisWeek
-                          ? 'Previous week'
-                          : 'Previous month',
-                  onPressed: _goToPrev,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.chevron_right),
-                  tooltip: _dateRangeMode == _DateRangeMode.today
-                      ? 'Next day'
-                      : _dateRangeMode == _DateRangeMode.thisWeek
-                          ? 'Next week'
-                          : 'Next month',
-                  onPressed: _goToNext,
-                ),
-                const SizedBox(width: 8),
-              ],
-              OutlinedButton.icon(
-                icon: const Icon(Icons.calendar_month_outlined, size: 18),
-                label: Text(_dateRangeMode == _DateRangeMode.custom
-                    ? 'Change Range'
-                    : 'Pick Date'),
-                onPressed: () async {
-                  if (_dateRangeMode == _DateRangeMode.custom) {
-                    await _pickCustomRange();
-                  } else {
-                    final picked = await showDatePicker(
-                      context: context,
-                      initialDate: _selectedDate,
-                      firstDate: DateTime(2020),
-                      lastDate: DateTime(2030),
-                    );
-                    if (picked != null) {
-                      setState(() {
-                        _selectedDate =
-                            DateTime(picked.year, picked.month, picked.day);
-                        _dateRangeMode = _DateRangeMode.today;
-                      });
-                    }
-                  }
-                },
               ),
+              const SizedBox(width: 8),
+              Container(
+                width: 4,
+                height: 4,
+                decoration: const BoxDecoration(
+                  color: AppColors.textDisabled,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 8),
             ],
+            if (totalCount > 0)
+              Text(
+                '$totalCount appointment${totalCount == 1 ? '' : 's'}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+
+    final navControls = SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (!_isToday)
+            TextButton(
+              onPressed: _goToToday,
+              child: const Text('Today'),
+            ),
+          const SizedBox(width: 4),
+          if (_dateRangeMode != _DateRangeMode.custom) ...[
+            IconButton(
+              icon: const Icon(Icons.chevron_left),
+              tooltip: _dateRangeMode == _DateRangeMode.today
+                  ? 'Previous day'
+                  : _dateRangeMode == _DateRangeMode.thisWeek
+                      ? 'Previous week'
+                      : 'Previous month',
+              onPressed: _goToPrev,
+            ),
+            IconButton(
+              icon: const Icon(Icons.chevron_right),
+              tooltip: _dateRangeMode == _DateRangeMode.today
+                  ? 'Next day'
+                  : _dateRangeMode == _DateRangeMode.thisWeek
+                      ? 'Next week'
+                      : 'Next month',
+              onPressed: _goToNext,
+            ),
+            const SizedBox(width: 4),
+          ],
+          OutlinedButton.icon(
+            icon: const Icon(Icons.calendar_month_outlined, size: 18),
+            label: Text(_dateRangeMode == _DateRangeMode.custom
+                ? 'Change Range'
+                : 'Pick Date'),
+            onPressed: () async {
+              if (_dateRangeMode == _DateRangeMode.custom) {
+                await _pickCustomRange();
+              } else {
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: _selectedDate,
+                  firstDate: DateTime(2020),
+                  lastDate: DateTime(2030),
+                );
+                if (picked != null) {
+                  setState(() {
+                    _selectedDate =
+                        DateTime(picked.year, picked.month, picked.day);
+                    _dateRangeMode = _DateRangeMode.today;
+                  });
+                }
+              }
+            },
           ),
         ],
       ),
+    );
+
+    return Container(
+      padding: EdgeInsets.fromLTRB(isMobile ? 16 : 24, 16, isMobile ? 16 : 24, 16),
+      color: AppColors.surface,
+      child: isMobile
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                dateTitleColumn,
+                const SizedBox(height: 12),
+                navControls,
+              ],
+            )
+          : Row(
+              children: [
+                Expanded(child: dateTitleColumn),
+                navControls,
+              ],
+            ),
     );
   }
 

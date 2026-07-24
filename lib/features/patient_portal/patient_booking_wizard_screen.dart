@@ -241,6 +241,35 @@ class _PatientBookingWizardScreenState extends ConsumerState<PatientBookingWizar
   // ---------- Progress Bar Indicator ----------
 
   Widget _buildStepIndicator() {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
+    if (isMobile) {
+      final stepNames = ['Select Service', 'Date & Time', 'Review', 'Confirmed'];
+      final currentName = _currentStep < stepNames.length ? stepNames[_currentStep] : '';
+
+      return Column(
+        children: [
+          Row(
+            children: [
+              for (int i = 0; i < 4; i++) ...[
+                _buildMobileStepCircle(i),
+                if (i < 3) const Expanded(child: Divider(thickness: 2)),
+              ],
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Step ${_currentStep + 1} of 4: $currentName',
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: AppColors.primary,
+            ),
+          ),
+        ],
+      );
+    }
+
     return Row(
       children: [
         _buildStepBadge(0, '1. Select Service'),
@@ -251,6 +280,33 @@ class _PatientBookingWizardScreenState extends ConsumerState<PatientBookingWizar
         const Expanded(child: Divider(thickness: 2)),
         _buildStepBadge(3, '4. Confirmed'),
       ],
+    );
+  }
+
+  Widget _buildMobileStepCircle(int step) {
+    final isActive = _currentStep == step;
+    final isDone = _currentStep > step;
+
+    final bgColor = isDone
+        ? AppColors.success
+        : (isActive ? AppColors.primary : AppColors.surfaceVariant);
+    final textColor = (isDone || isActive) ? Colors.white : AppColors.textSecondary;
+
+    return Container(
+      width: 28,
+      height: 28,
+      decoration: BoxDecoration(
+        color: bgColor,
+        shape: BoxShape.circle,
+      ),
+      child: Center(
+        child: isDone
+            ? const Icon(Icons.check, size: 16, color: Colors.white)
+            : Text(
+                '${step + 1}',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: textColor),
+              ),
+      ),
     );
   }
 
@@ -300,9 +356,44 @@ class _PatientBookingWizardScreenState extends ConsumerState<PatientBookingWizar
               );
             }
 
+            final isMobile = MediaQuery.of(context).size.width < 500;
+
             return Column(
               children: services.map((svc) {
                 final isSelected = _selectedService?.id == svc.id;
+
+                final serviceDetails = Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      svc.name,
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      svc.description,
+                      style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                    ),
+                  ],
+                );
+
+                final priceDetails = Row(
+                  mainAxisSize: isMobile ? MainAxisSize.max : MainAxisSize.min,
+                  mainAxisAlignment: isMobile ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      '₱${svc.price.toStringAsFixed(0)}',
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary),
+                    ),
+                    const SizedBox(width: 8),
+                    Chip(
+                      label: Text('${svc.durationMinutes} mins', style: const TextStyle(fontSize: 11)),
+                      backgroundColor: AppColors.surfaceVariant,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ],
+                );
 
                 return Card(
                   elevation: isSelected ? 3 : 1,
@@ -323,48 +414,44 @@ class _PatientBookingWizardScreenState extends ConsumerState<PatientBookingWizar
                     },
                     borderRadius: BorderRadius.circular(12),
                     child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Row(
-                        children: [
-                          Icon(
-                            isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
-                            color: isSelected ? AppColors.primary : AppColors.textSecondary,
-                            size: 24,
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
+                      padding: EdgeInsets.all(isMobile ? 14 : 20),
+                      child: isMobile
+                          ? Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  svc.name,
-                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
+                                      color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                                      size: 24,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(child: serviceDetails),
+                                  ],
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  svc.description,
-                                  style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                                const SizedBox(height: 12),
+                                const Divider(height: 1),
+                                const SizedBox(height: 8),
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 36),
+                                  child: priceDetails,
                                 ),
                               ],
+                            )
+                          : Row(
+                              children: [
+                                Icon(
+                                  isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
+                                  color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                                  size: 24,
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(child: serviceDetails),
+                                const SizedBox(width: 16),
+                                priceDetails,
+                              ],
                             ),
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                '₱${svc.price.toStringAsFixed(0)}',
-                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary),
-                              ),
-                              const SizedBox(height: 4),
-                              Chip(
-                                label: Text('${svc.durationMinutes} mins', style: const TextStyle(fontSize: 11)),
-                                backgroundColor: AppColors.surfaceVariant,
-                                visualDensity: VisualDensity.compact,
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
                     ),
                   ),
                 );
@@ -408,6 +495,31 @@ class _PatientBookingWizardScreenState extends ConsumerState<PatientBookingWizar
   // ---------- Step 2: Date & Time Selection ----------
 
   Widget _buildStep2DateTimeSelection() {
+    final isMobile = MediaQuery.of(context).size.width < 480;
+
+    final changeDateBtn = OutlinedButton.icon(
+      onPressed: () async {
+        final settings = ref.read(clinicSettingsProvider).asData?.value ?? _fallbackClinicSettings;
+
+        final today = DateTime.now();
+        final cleanToday = DateTime(today.year, today.month, today.day);
+
+        final picked = await showDatePicker(
+          context: context,
+          initialDate: _selectedDate!,
+          firstDate: cleanToday.add(const Duration(days: 1)),
+          lastDate: cleanToday.add(const Duration(days: 90)),
+          selectableDayPredicate: (day) => isClinicOpen(day, settings),
+        );
+        if (picked != null) {
+          setState(() => _selectedDate = picked);
+          await _fetchAndComputeSlots(picked);
+        }
+      },
+      icon: const Icon(Icons.edit_calendar, size: 18),
+      label: const Text('Change Date'),
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -430,46 +542,51 @@ class _PatientBookingWizardScreenState extends ConsumerState<PatientBookingWizar
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                const Icon(Icons.calendar_month, color: AppColors.primary, size: 28),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
+            child: isMobile
+                ? Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Selected Date', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                      Text(
-                        '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}',
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                      Row(
+                        children: [
+                          const Icon(Icons.calendar_month, color: AppColors.primary, size: 28),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Selected Date', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                                Text(
+                                  '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}',
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
+                      const SizedBox(height: 12),
+                      SizedBox(width: double.infinity, child: changeDateBtn),
+                    ],
+                  )
+                : Row(
+                    children: [
+                      const Icon(Icons.calendar_month, color: AppColors.primary, size: 28),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Selected Date', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                            Text(
+                              '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}',
+                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                            ),
+                          ],
+                        ),
+                      ),
+                      changeDateBtn,
                     ],
                   ),
-                ),
-                OutlinedButton.icon(
-                  onPressed: () async {
-                    final settings = ref.read(clinicSettingsProvider).asData?.value ?? _fallbackClinicSettings;
-
-                    final today = DateTime.now();
-                    final cleanToday = DateTime(today.year, today.month, today.day);
-
-                    final picked = await showDatePicker(
-                      context: context,
-                      initialDate: _selectedDate!,
-                      firstDate: cleanToday.add(const Duration(days: 1)),
-                      lastDate: cleanToday.add(const Duration(days: 90)),
-                      selectableDayPredicate: (day) => isClinicOpen(day, settings),
-                    );
-                    if (picked != null) {
-                      setState(() => _selectedDate = picked);
-                      await _fetchAndComputeSlots(picked);
-                    }
-                  },
-                  icon: const Icon(Icons.edit_calendar, size: 18),
-                  label: const Text('Change Date'),
-                ),
-              ],
-            ),
           ),
         ),
         const SizedBox(height: 24),
@@ -536,7 +653,7 @@ class _PatientBookingWizardScreenState extends ConsumerState<PatientBookingWizar
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
               child: const Text('Next: Review & Submit'),
@@ -551,6 +668,7 @@ class _PatientBookingWizardScreenState extends ConsumerState<PatientBookingWizar
 
   Widget _buildStep3ReviewAndNotes() {
     final dateStr = '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}';
+    final isMobile = MediaQuery.of(context).size.width < 480;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -592,23 +710,38 @@ class _PatientBookingWizardScreenState extends ConsumerState<PatientBookingWizar
         Card(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(isMobile ? 16 : 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      _selectedService!.name,
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                    ),
-                    Text(
-                      '₱${_selectedService!.price.toStringAsFixed(0)}',
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primary),
-                    ),
-                  ],
-                ),
+                isMobile
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _selectedService!.name,
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '₱${_selectedService!.price.toStringAsFixed(0)}',
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary),
+                          ),
+                        ],
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            _selectedService!.name,
+                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                          ),
+                          Text(
+                            '₱${_selectedService!.price.toStringAsFixed(0)}',
+                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primary),
+                          ),
+                        ],
+                      ),
                 const SizedBox(height: 12),
                 const Divider(),
                 const SizedBox(height: 12),

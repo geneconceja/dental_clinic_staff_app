@@ -31,108 +31,182 @@ class AppShell extends ConsumerWidget {
     final profileAsync = ref.watch(staffProfileProvider);
     final pendingAsync = ref.watch(pendingAppointmentsProvider);
     final theme = Theme.of(context);
+    final isMobile = MediaQuery.of(context).size.width <= 768;
 
     final isAdmin = role == 'admin';
     final pendingCount = pendingAsync.asData?.value.length ?? 0;
+
+    final sidebarContent = Container(
+      width: 260,
+      color: AppColors.sidebarBackground,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Branding header
+          _buildSidebarHeader(theme),
+          const Divider(color: Colors.white24, height: 1),
+
+          // Navigation links
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              children: [
+                _SidebarItem(
+                  icon: Icons.dashboard_outlined,
+                  label: 'Dashboard',
+                  active: currentRoute == '/dashboard',
+                  onTap: () {
+                    if (isMobile) Navigator.of(context).pop();
+                    context.goNamed(AppRoutes.dashboard);
+                  },
+                ),
+                _SidebarItem(
+                  icon: Icons.calendar_month_outlined,
+                  label: 'Calendar',
+                  active: currentRoute == '/calendar',
+                  onTap: () {
+                    if (isMobile) Navigator.of(context).pop();
+                    context.goNamed(AppRoutes.calendar);
+                  },
+                ),
+                _SidebarItem(
+                  icon: Icons.inbox_outlined,
+                  label: 'Review Queue',
+                  active: currentRoute == '/review-queue',
+                  onTap: () {
+                    if (isMobile) Navigator.of(context).pop();
+                    context.goNamed(AppRoutes.reviewQueue);
+                  },
+                  badgeCount: pendingCount,
+                ),
+                _SidebarItem(
+                  icon: Icons.person_add_outlined,
+                  label: 'New Walk-In',
+                  active: currentRoute == '/walk-in/new',
+                  onTap: () {
+                    if (isMobile) Navigator.of(context).pop();
+                    context.goNamed(AppRoutes.walkInNew);
+                  },
+                ),
+                _SidebarItem(
+                  icon: Icons.history_edu_outlined,
+                  label: 'Activity Audit Logs',
+                  active: currentRoute == '/activity-logs',
+                  onTap: () {
+                    if (isMobile) Navigator.of(context).pop();
+                    context.go('/activity-logs');
+                  },
+                ),
+                if (isAdmin) ...[
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    child: Text(
+                      'ADMIN TOOLS',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: AppColors.sidebarText.withAlpha(127),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  _SidebarItem(
+                    icon: Icons.medical_services_outlined,
+                    label: 'Services',
+                    active: currentRoute == '/services',
+                    onTap: () {
+                      if (isMobile) Navigator.of(context).pop();
+                      context.goNamed(AppRoutes.services);
+                    },
+                  ),
+                  _SidebarItem(
+                    icon: Icons.manage_accounts_outlined,
+                    label: 'Staff Directory',
+                    active: currentRoute == '/staff',
+                    onTap: () {
+                      if (isMobile) Navigator.of(context).pop();
+                      context.goNamed(AppRoutes.staff);
+                    },
+                  ),
+                  _SidebarItem(
+                    icon: Icons.settings_outlined,
+                    label: 'Clinic Settings',
+                    active: currentRoute == '/settings',
+                    onTap: () {
+                      if (isMobile) Navigator.of(context).pop();
+                      context.goNamed(AppRoutes.settings);
+                    },
+                  ),
+                ],
+              ],
+            ),
+          ),
+
+          // User profile info + log out button
+          const Divider(color: Colors.white24, height: 1),
+          profileAsync.when(
+            data: (profile) => _buildUserProfileFooter(context, ref, profile),
+            loading: () => const Padding(
+              padding: EdgeInsets.all(24),
+              child: Center(child: CircularProgressIndicator(color: AppColors.sidebarText)),
+            ),
+            error: (_, __) => _buildUserProfileFooter(context, ref, null),
+          ),
+        ],
+      ),
+    );
+
+    if (isMobile) {
+      String titleText = 'OralScope';
+      if (currentRoute == '/dashboard') {
+        titleText = 'Dashboard';
+      } else if (currentRoute == '/calendar') {
+        titleText = 'Calendar';
+      } else if (currentRoute == '/review-queue') {
+        titleText = 'Review Queue';
+      } else if (currentRoute == '/walk-in/new') {
+        titleText = 'New Walk-In';
+      } else if (currentRoute == '/activity-logs') {
+        titleText = 'Audit Logs';
+      } else if (currentRoute == '/services') {
+        titleText = 'Services Management';
+      } else if (currentRoute == '/staff') {
+        titleText = 'Staff Directory';
+      } else if (currentRoute == '/settings') {
+        titleText = 'Clinic Settings';
+      } else if (currentRoute.startsWith('/appointment/')) {
+        titleText = 'Appointment Details';
+      }
+
+      return Scaffold(
+        appBar: AppBar(
+          backgroundColor: AppColors.sidebarBackground,
+          surfaceTintColor: Colors.transparent,
+          elevation: 2,
+          iconTheme: const IconThemeData(color: Colors.white),
+          title: Text(
+            titleText,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
+          ),
+        ),
+        drawer: Drawer(
+          child: sidebarContent,
+        ),
+        body: Container(
+          color: AppColors.background,
+          child: child,
+        ),
+      );
+    }
 
     return Scaffold(
       body: Row(
         children: [
           // ---------- Left Sidebar (Desktop/Tablet) ----------
-          Container(
-            width: 260,
-            color: AppColors.sidebarBackground,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Branding header
-                _buildSidebarHeader(theme),
-                const Divider(color: Colors.white24, height: 1),
-
-                // Navigation links
-                Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    children: [
-                      _SidebarItem(
-                        icon: Icons.dashboard_outlined,
-                        label: 'Dashboard',
-                        active: currentRoute == '/dashboard',
-                        onTap: () => context.goNamed(AppRoutes.dashboard),
-                      ),
-                      _SidebarItem(
-                        icon: Icons.calendar_month_outlined,
-                        label: 'Calendar',
-                        active: currentRoute == '/calendar',
-                        onTap: () => context.goNamed(AppRoutes.calendar),
-                      ),
-                      _SidebarItem(
-                        icon: Icons.inbox_outlined,
-                        label: 'Review Queue',
-                        active: currentRoute == '/review-queue',
-                        onTap: () => context.goNamed(AppRoutes.reviewQueue),
-                        badgeCount: pendingCount,
-                      ),
-                      _SidebarItem(
-                        icon: Icons.person_add_outlined,
-                        label: 'New Walk-In',
-                        active: currentRoute == '/walk-in/new',
-                        onTap: () => context.goNamed(AppRoutes.walkInNew),
-                      ),
-                      _SidebarItem(
-                        icon: Icons.history_edu_outlined,
-                        label: 'Activity Audit Logs',
-                        active: currentRoute == '/activity-logs',
-                        onTap: () => context.go('/activity-logs'),
-                      ),
-                      if (isAdmin) ...[
-                        const SizedBox(height: 16),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                          child: Text(
-                            'ADMIN TOOLS',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: AppColors.sidebarText.withAlpha(127),
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                        _SidebarItem(
-                          icon: Icons.medical_services_outlined,
-                          label: 'Services',
-                          active: currentRoute == '/services',
-                          onTap: () => context.goNamed(AppRoutes.services),
-                        ),
-                        _SidebarItem(
-                          icon: Icons.manage_accounts_outlined,
-                          label: 'Staff Directory',
-                          active: currentRoute == '/staff',
-                          onTap: () => context.goNamed(AppRoutes.staff),
-                        ),
-                        _SidebarItem(
-                          icon: Icons.settings_outlined,
-                          label: 'Clinic Settings',
-                          active: currentRoute == '/settings',
-                          onTap: () => context.goNamed(AppRoutes.settings),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-
-                // User profile info + log out button
-                const Divider(color: Colors.white24, height: 1),
-                profileAsync.when(
-                  data: (profile) => _buildUserProfileFooter(context, ref, profile),
-                  loading: () => const Padding(
-                    padding: EdgeInsets.all(24),
-                    child: Center(child: CircularProgressIndicator(color: AppColors.sidebarText)),
-                  ),
-                  error: (_, __) => _buildUserProfileFooter(context, ref, null),
-                ),
-              ],
-            ),
-          ),
+          sidebarContent,
 
           // ---------- Right Content Window ----------
           Expanded(

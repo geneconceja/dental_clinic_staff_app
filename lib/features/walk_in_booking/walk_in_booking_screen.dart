@@ -227,6 +227,27 @@ class _WalkInBookingScreenState extends ConsumerState<WalkInBookingScreen> {
   // ── Step 1: Patient Details ───────────────────────────────────────────────
 
   Step _buildPatientStep(ThemeData theme) {
+    final isNarrow = MediaQuery.of(context).size.width < 480;
+
+    final firstNameField = TextFormField(
+      controller: _firstNameCtrl,
+      decoration: const InputDecoration(
+        labelText: 'First Name *',
+        prefixIcon: Icon(Icons.person_outline),
+      ),
+      textCapitalization: TextCapitalization.words,
+      validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+    );
+
+    final lastNameField = TextFormField(
+      controller: _lastNameCtrl,
+      decoration: const InputDecoration(
+        labelText: 'Last Name *',
+      ),
+      textCapitalization: TextCapitalization.words,
+      validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+    );
+
     return Step(
       title: const Text('Patient Details'),
       subtitle: const Text('Name, phone number, and optional notes'),
@@ -235,34 +256,19 @@ class _WalkInBookingScreenState extends ConsumerState<WalkInBookingScreen> {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: TextFormField(
-                  controller: _firstNameCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'First Name *',
-                    prefixIcon: Icon(Icons.person_outline),
-                  ),
-                  textCapitalization: TextCapitalization.words,
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required' : null,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: TextFormField(
-                  controller: _lastNameCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Last Name *',
-                  ),
-                  textCapitalization: TextCapitalization.words,
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required' : null,
-                ),
-              ),
-            ],
-          ),
+          if (isNarrow) ...[
+            firstNameField,
+            const SizedBox(height: 16),
+            lastNameField,
+          ] else ...[
+            Row(
+              children: [
+                Expanded(child: firstNameField),
+                const SizedBox(width: 16),
+                Expanded(child: lastNameField),
+              ],
+            ),
+          ],
           const SizedBox(height: 16),
           TextFormField(
             controller: _phoneCtrl,

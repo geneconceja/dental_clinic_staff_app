@@ -74,6 +74,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isMobile = MediaQuery.of(context).size.width <= 768;
     final monthAsync = ref.watch(
       appointmentsByMonthProvider((year: _displayYear, month: _displayMonth)),
     );
@@ -91,31 +92,40 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       error: (_, __) => <String, int>{},
     );
 
+    final gridContent = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildHeader(theme),
+        _buildWeekdayLabels(theme),
+        const Divider(height: 1),
+        Expanded(
+          child: _buildCalendarGrid(theme, countMap, isMobile),
+        ),
+      ],
+    );
+
+    if (isMobile) {
+      return Scaffold(
+        body: gridContent,
+      );
+    }
+
     return Scaffold(
       body: Row(
         children: [
           // ── Calendar Grid ───────────────────────────────────────────
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildHeader(theme),
-                _buildWeekdayLabels(theme),
-                const Divider(height: 1),
-                Expanded(
-                  child: _buildCalendarGrid(theme, countMap),
-                ),
-              ],
-            ),
-          ),
+          Expanded(child: gridContent),
 
           // ── Day Panel (slide in from right when a day is selected) ──
           if (_selectedDay != null) ...[
             const VerticalDivider(width: 1),
-            CalendarDayPanel(
-              selectedDay: _selectedDay!,
-              dateString: _selectedDayStr,
-              onClose: () => setState(() => _selectedDay = null),
+            SizedBox(
+              width: 360,
+              child: CalendarDayPanel(
+                selectedDay: _selectedDay!,
+                dateString: _selectedDayStr,
+                onClose: () => setState(() => _selectedDay = null),
+              ),
             ),
           ],
         ],
@@ -188,7 +198,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     );
   }
 
-  Widget _buildCalendarGrid(ThemeData theme, Map<String, int> countMap) {
+  Widget _buildCalendarGrid(ThemeData theme, Map<String, int> countMap, bool isMobile) {
     final today = DateTime.now();
     // First day of the month
     final firstDay = DateTime(_displayYear, _displayMonth, 1);
@@ -200,9 +210,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
     return GridView.builder(
       padding: const EdgeInsets.all(12),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 7,
-        childAspectRatio: 1.4,
+        childAspectRatio: isMobile ? 1.0 : 1.4,
         crossAxisSpacing: 4,
         mainAxisSpacing: 4,
       ),
@@ -231,7 +241,28 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           appointmentCount: count,
           isToday: isToday,
           isSelected: isSelected,
-          onTap: () => setState(() => _selectedDay = thisDay),
+          onTap: () {
+            if (isMobile) {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: AppColors.surface,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                ),
+                builder: (ctx) => SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.75,
+                  child: CalendarDayPanel(
+                    selectedDay: thisDay,
+                    dateString: dateStr,
+                    onClose: () => Navigator.of(ctx).pop(),
+                  ),
+                ),
+              );
+            } else {
+              setState(() => _selectedDay = thisDay);
+            }
+          },
         );
       },
     );
