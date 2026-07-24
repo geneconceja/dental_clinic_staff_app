@@ -28,9 +28,7 @@ jobs:
       - name: Setup Flutter SDK
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.x'
           channel: 'stable'
-          cache: true
 
       - name: Install Functions Dependencies & Run Unit Tests
         working-directory: functions
@@ -59,9 +57,7 @@ jobs:
       - name: Setup Flutter SDK
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.x'
           channel: 'stable'
-          cache: true
 
       - name: Build Web Release (Staging)
         run: |
@@ -98,9 +94,7 @@ jobs:
       - name: Setup Flutter SDK
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.x'
           channel: 'stable'
-          cache: true
 
       - name: Build Functions TypeScript
         working-directory: functions
