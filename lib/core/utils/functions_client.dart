@@ -47,7 +47,7 @@ class UnknownFunctionsException extends FunctionsException {
 
 class FunctionsClient {
   FunctionsClient({FirebaseFunctions? functions})
-      : _functions = functions ?? FirebaseFunctions.instance;
+      : _functions = functions ?? FirebaseFunctions.instanceFor(region: 'asia-southeast1');
 
   final FirebaseFunctions _functions;
 

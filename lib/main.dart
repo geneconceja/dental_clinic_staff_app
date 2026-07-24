@@ -23,8 +23,12 @@ const String _env = String.fromEnvironment('ENV', defaultValue: 'prod');
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Load .env before any Firebase SDK call
-  await dotenv.load(fileName: '.env');
+  // Load .env before any Firebase SDK call (fail silently on web release if asset missing)
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (e) {
+    debugPrint('[Main] dotenv load skipped or failed: $e');
+  }
 
   // Initialize Firebase
   await Firebase.initializeApp(options: firebaseOptionsFromEnv());

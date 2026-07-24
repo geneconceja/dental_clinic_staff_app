@@ -14,9 +14,8 @@ if (getApps().length === 0) {
   initializeApp();
 }
 
-// Cost-control: cap concurrent containers across all functions.
-// Individual functions may override this with their own maxInstances option.
-setGlobalOptions({ maxInstances: 10 });
+// Cost-control & low-latency region for Philippines (Asia/Singapore):
+setGlobalOptions({ region: "asia-southeast1", maxInstances: 10 });
 
 // Phase 2 — Walk-in booking engine
 export { createWalkInAppointment } from "./createWalkInAppointment";

@@ -51,7 +51,7 @@ class _SsoExchangeScreenState extends ConsumerState<SsoExchangeScreen> {
 
     try {
       // 1. Consume SSO token via Cloud Function
-      final callable = FirebaseFunctions.instance.httpsCallable('consumeSsoToken');
+      final callable = FirebaseFunctions.instanceFor(region: 'asia-southeast1').httpsCallable('consumeSsoToken');
       final result = await callable.call<Map<String, dynamic>>({
         'ssoToken': widget.token,
       });

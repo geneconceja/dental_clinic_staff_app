@@ -32,4 +32,5 @@ Future<void> configureEmulators() async {
 
   // Functions emulator
   FirebaseFunctions.instance.useFunctionsEmulator(_emulatorHost, _functionsPort);
+  FirebaseFunctions.instanceFor(region: 'asia-southeast1').useFunctionsEmulator(_emulatorHost, _functionsPort);
 }
