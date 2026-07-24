@@ -160,5 +160,23 @@ service cloud.firestore {
           .hasOnly(['status', 'paid', 'notes', 'reminderSent', 'updatedAt']);
       }
     }
+
+    // ---------- sso_tokens (single-use SSO handoff tokens) ----------
+
+    match /sso_tokens/{tokenId} {
+      // SSO tokens are generated and consumed exclusively via Cloud Functions (Admin SDK).
+      // Direct client reads/writes are blocked for security.
+      allow read, write: if false;
+    }
+
+    // ---------- activity_logs (system audit logs) ----------
+
+    match /activity_logs/{logId} {
+      // Readable by staff/admin; writeable by signed-in users creating audit logs;
+      // updates and deletes are permanently forbidden (100% immutable).
+      allow read: if isStaffOrAdmin();
+      allow create: if isSignedIn();
+      allow update, delete: if false;
+    }
   }
 }

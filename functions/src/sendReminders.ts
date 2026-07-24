@@ -18,8 +18,8 @@
  * Email failures are logged but do not throw — the document keeps reminderSent
  * as false so it will be retried on the next hourly run.
  *
- * Email is sent via Resend (https://resend.com).
- * Requires RESEND_API_KEY in functions/.env (or Firebase Secrets for production).
+ * Email is sent via Brevo (https://brevo.com).
+ * Requires BREVO_API_KEY in functions/.env (or Firebase Secrets for production).
  */
 
 import { onSchedule } from "firebase-functions/v2/scheduler";

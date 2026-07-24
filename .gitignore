@@ -79,6 +79,9 @@ service-account*.json
 .env
 .env.local
 .env.*.local
+**/.env
+**/.env.*
+
 
 # ---------- Notes on files intentionally NOT ignored ----------
 # firebase.json, firestore.rules, firestore.indexes.json — required config, must be committed

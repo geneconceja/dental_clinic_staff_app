@@ -31,7 +31,7 @@ export async function sendBrevoEmail(input: SendEmailInput): Promise<SendEmailRe
   const senderName = process.env.BREVO_SENDER_NAME || "OralScope Dental Clinic";
 
   // Development / Mock fallback if key is unconfigured or mock
-  if (!apiKey || apiKey.startsWith("mock") || apiKey === "re_BafTxwMY_NJ6pYmZtjPJxCCPrGVuHP6MX") {
+  if (!apiKey || apiKey.startsWith("mock")) {
     logger.info("[Brevo Service (DEV MOCK)] Email Dispatch Triggered:", {
       toEmail: input.toEmail,
       toName: input.toName,

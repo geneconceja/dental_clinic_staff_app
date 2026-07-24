@@ -5,6 +5,7 @@
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/services/activity_logger_service.dart';
 import '../../core/utils/functions_client.dart';
 
 class StatusUpdateResult {
@@ -28,9 +29,14 @@ class StatusUpdateResult {
 }
 
 class StatusFunctions {
-  const StatusFunctions({required FunctionsClient client}) : _client = client;
+  const StatusFunctions({
+    required FunctionsClient client,
+    required ActivityLoggerService logger,
+  })  : _client = client,
+        _logger = logger;
 
   final FunctionsClient _client;
+  final ActivityLoggerService _logger;
 
   /// Invokes the updateAppointmentStatus callable Cloud Function.
   /// Throws typed [FunctionsException] subclasses on backend errors.
@@ -48,7 +54,27 @@ class StatusFunctions {
       },
     );
 
-    return StatusUpdateResult.fromMap(rawResult);
+    final res = StatusUpdateResult.fromMap(rawResult);
+
+    if (res.success) {
+      final actionName = newStatus == 'confirmed'
+          ? 'appointment_confirmed'
+          : newStatus == 'cancelled'
+              ? 'appointment_cancelled'
+              : 'appointment_updated';
+
+      await _logger.logActivity(
+        action: actionName,
+        resourceId: appointmentId,
+        actorRole: 'staff',
+        details: {
+          'newStatus': newStatus,
+          if (cancellationReason != null) 'cancellationReason': cancellationReason,
+        },
+      );
+    }
+
+    return res;
   }
 }
 
@@ -56,5 +82,6 @@ class StatusFunctions {
 
 final statusFunctionsProvider = Provider<StatusFunctions>((ref) {
   final client = ref.watch(functionsClientProvider);
-  return StatusFunctions(client: client);
+  final logger = ref.watch(activityLoggerServiceProvider);
+  return StatusFunctions(client: client, logger: logger);
 });

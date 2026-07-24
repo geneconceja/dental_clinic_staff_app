@@ -274,3 +274,90 @@ describe("users collection", () => {
     );
   });
 });
+
+describe("activity_logs collection", () => {
+  test("staff can read activity_logs documents", async () => {
+    await seedStaffUser();
+    const staffCtx = testEnv.authenticatedContext(STAFF_UID);
+    await assertSucceeds(
+      staffCtx.firestore().collection("activity_logs").get()
+    );
+  });
+
+  test("unauthenticated user CANNOT read activity_logs", async () => {
+    const unauthCtx = testEnv.unauthenticatedContext();
+    await assertFails(
+      unauthCtx.firestore().collection("activity_logs").get()
+    );
+  });
+
+  test("signed-in user can create an activity_log entry", async () => {
+    await seedStaffUser();
+    const staffCtx = testEnv.authenticatedContext(STAFF_UID);
+    await assertSucceeds(
+      staffCtx.firestore().collection("activity_logs").add({
+        actorUid: STAFF_UID,
+        actorEmail: "staff@test.com",
+        actorRole: "staff",
+        action: "appointment_confirmed",
+        resourceId: "appt-123",
+        timestamp: new Date(),
+      })
+    );
+  });
+
+  test("client CANNOT update an existing activity_log (immutable audit trail)", async () => {
+    await seedStaffUser();
+    const logId = "log-123";
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await context.firestore().collection("activity_logs").doc(logId).set({
+        actorUid: STAFF_UID,
+        action: "appointment_confirmed",
+      });
+    });
+
+    const staffCtx = testEnv.authenticatedContext(STAFF_UID);
+    await assertFails(
+      staffCtx.firestore().collection("activity_logs").doc(logId).update({
+        action: "tampered_action",
+      })
+    );
+  });
+
+  test("client CANNOT delete an existing activity_log (immutable audit trail)", async () => {
+    await seedStaffUser();
+    const logId = "log-456";
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await context.firestore().collection("activity_logs").doc(logId).set({
+        actorUid: STAFF_UID,
+        action: "appointment_cancelled",
+      });
+    });
+
+    const staffCtx = testEnv.authenticatedContext(STAFF_UID);
+    await assertFails(
+      staffCtx.firestore().collection("activity_logs").doc(logId).delete()
+    );
+  });
+});
+
+describe("sso_tokens collection", () => {
+  test("direct client read of sso_tokens is DENIED", async () => {
+    await seedStaffUser();
+    const staffCtx = testEnv.authenticatedContext(STAFF_UID);
+    await assertFails(
+      staffCtx.firestore().collection("sso_tokens").doc("token-123").get()
+    );
+  });
+
+  test("direct client write to sso_tokens is DENIED", async () => {
+    await seedStaffUser();
+    const staffCtx = testEnv.authenticatedContext(STAFF_UID);
+    await assertFails(
+      staffCtx.firestore().collection("sso_tokens").doc("token-123").set({
+        uid: STAFF_UID,
+        used: false,
+      })
+    );
+  });
+});

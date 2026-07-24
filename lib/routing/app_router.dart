@@ -14,6 +14,7 @@ import '../core/theme/app_colors.dart';
 import '../core/widgets/app_shell.dart';
 import '../core/widgets/patient_app_shell.dart';
 import '../features/auth/auth_providers.dart';
+import '../features/activity_logs/activity_logs_screen.dart';
 import '../features/auth/login_screen.dart';
 import '../features/auth/sso_exchange_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
@@ -215,6 +216,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/staff',
             name: AppRoutes.staff,
             builder: (_, __) => const StaffScreen(),
+          ),
+          GoRoute(
+            path: '/activity-logs',
+            name: 'activityLogs',
+            builder: (_, __) => const ActivityLogsScreen(),
           ),
         ],
       ),

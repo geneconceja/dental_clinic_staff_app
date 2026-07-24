@@ -13,8 +13,8 @@
  * Walk-ins (bookingSource == "staff_walkin" or userEmail == null) are silently
  * skipped — there is no automated channel to reach walk-in patients.
  *
- * Email is sent via Resend (https://resend.com).
- * Requires RESEND_API_KEY in functions/.env (or Firebase Secrets for production).
+ * Email is sent via Brevo (https://brevo.com).
+ * Requires BREVO_API_KEY in functions/.env (or Firebase Secrets for production).
  */
 
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";

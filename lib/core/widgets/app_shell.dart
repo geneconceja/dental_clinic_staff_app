@@ -79,6 +79,12 @@ class AppShell extends ConsumerWidget {
                         active: currentRoute == '/walk-in/new',
                         onTap: () => context.goNamed(AppRoutes.walkInNew),
                       ),
+                      _SidebarItem(
+                        icon: Icons.history_edu_outlined,
+                        label: 'Activity Audit Logs',
+                        active: currentRoute == '/activity-logs',
+                        onTap: () => context.go('/activity-logs'),
+                      ),
                       if (isAdmin) ...[
                         const SizedBox(height: 16),
                         Padding(
