@@ -1,12 +1,57 @@
 # Dental Clinic Appointment System — Staff/Admin App
 
-Internal Flutter Web app used by clinic staff and admin to review patient-submitted appointment requests, book walk-in appointments, and manage clinic services and settings.
+Internal Flutter Web app used by clinic staff and admin to review patient-submitted appointment requests, book walk-in appointments, manage patient registration & email verification, and manage clinic services and settings.
 
-> **This repo is staff/admin-only.** Patient registration and self-booking happen in a separate, already-live app on a different platform. Both apps share the same Firebase project (`oralscope-78cda`). See [`dental-clinic-appointment-system-plan.md`](./dental-clinic-appointment-system-plan.md) for the full architecture rationale.
+> **This repo handles both Staff/Admin workflows and the Patient Web Portal.** It connects to the shared Firebase project (`oralscope-78cda`). See [`dental-clinic-appointment-system-plan.md`](./dental-clinic-appointment-system-plan.md) for the full architecture rationale.
 
 ---
 
-## Documentation Map
+## 🌐 Live Production Deployment
+
+| Component | Status | Details |
+| --- | --- | --- |
+| **Live Web App** | 🟢 **Live** | [https://oralscope-78cda.web.app](https://oralscope-78cda.web.app) |
+| **Cloud Functions (2nd Gen)** | 🟢 **Active** | Deployed in region **`asia-southeast1`** (Singapore — optimal for Philippines) |
+| **Firestore Security Rules** | 🟢 **Active** | Production-hardened with patient self-registration and immutable audit logs |
+| **Automated CI/CD** | 🟢 **Active** | GitHub Actions pipeline via [`.github/workflows/deploy.yml`](./.github/workflows/deploy.yml) |
+
+---
+
+## 🚀 Key Implemented Features
+
+### 🔑 Auth & Access Control
+- **Role-Based Routing**: Multi-role support (`admin`, `staff`, `patient`). Access control guarded centrally via Riverpod and `GoRouter`.
+- **Patient Self-Registration**: Full patient signup form with password strength indicator, auto-syncing Firestore profiles, and `isVerified` protection.
+- **Email Verification Gate**: Interactive verification gate for patients with 60-second resend cooldown and auto-verification detection.
+- **Mobile-to-Web SSO Handoff**: Cloud Function powered single-use handoff tokens (`generateSsoToken` & `consumeSsoToken`) for authenticating patients from mobile apps.
+
+### 📅 Appointment Management
+- **Walk-In Desk Booking**: Concurrency-safe Cloud Function (`createWalkInAppointment`) preventing slot double-booking across patient and staff apps.
+- **Appointment Status State Machine**: Enforces valid status transitions (`pending` ➔ `confirmed` | `cancelled`; `confirmed` ➔ `completed` | `cancelled` | `no-show`).
+- **Brevo Email Integration**: Automatic email notifications triggered on status updates (`onAppointmentStatusChange`).
+
+### ⚙️ Administration & Security
+- **System Audit Logs**: Immutable system activity logging stored in Firestore `activity_logs`.
+- **Services Admin**: CRUD management for clinic services, durations, and pricing.
+- **Clinic Settings**: Operational hours, maximum daily slot capacity, working days, and closed holidays.
+
+---
+
+## 🤖 CI/CD Pipeline (GitHub Actions)
+
+Continuous integration and continuous deployment are managed automatically via GitHub Actions:
+
+- **Workflow File**: [`.github/workflows/deploy.yml`](./.github/workflows/deploy.yml)
+- **Automated Quality Checks**: Runs `npm test` (functions), `dart analyze`, and `flutter test` on every PR or push.
+- **Pull Request Preview Channel**: Deploys temporary preview channels (e.g. `pr-12--oralscope-78cda.web.app`) for incoming PRs.
+- **Production Deployment**: Automatically compiles functions & Flutter web release (`ENV=prod`), then deploys to Firebase on push to `main`.
+
+> [!NOTE]
+> **Required GitHub Secret**: Set `FIREBASE_SERVICE_ACCOUNT_ORALSCOPE_78CDA` under **Repository Settings ➔ Secrets and variables ➔ Actions** with a valid GCP Service Account JSON key to enable automated deployments.
+
+---
+
+## 📑 Documentation Map
 
 | Document | What it's for |
 |---|---|
@@ -14,290 +59,92 @@ Internal Flutter Web app used by clinic staff and admin to review patient-submit
 | [`CONTRIBUTING.md`](./CONTRIBUTING.md) | Branching strategy, testing requirements, CI/CD, pre-deploy checklist |
 | [`GETTING-STARTED.md`](./GETTING-STARTED.md) | Step-by-step build order from empty repo to first working feature |
 | [`app-workflow-transaction-flow.md`](./app-workflow-transaction-flow.md) | Diagrams: user flows, booking transaction, status lifecycle, notification triggers |
-| [`firestore.rules`](./firestore.rules) | Security rules — **read the inline ⚠️ ASSUMPTION comments before deploying**, several depend on confirming the patient app's actual behavior |
+| [`firestore.rules`](./firestore.rules) | Security rules governing users, appointments, services, settings, activity logs, and sso tokens |
 | [`functions-api-contract.md`](./functions-api-contract.md) | Exact input/output contract for every Cloud Function |
 | [`schema-types.ts`](./schema-types.ts) | Source-of-truth TypeScript types for all Firestore documents |
-| [`decisions-log.md`](./decisions-log.md) | Tracks open questions and their resolutions as they're confirmed with the patient-app team |
-
----
-
-## Critical Context Before You Start
-
-1. **This app does not own the `appointments` schema.** It's shared with a live, separate patient app. Only additive changes are allowed here (see `bookingSource`, `createdBy`, `paid`, `reminderSent` in `schema-types.ts`) — never rename or remove existing fields.
-2. **Several things are still unresolved** and blocking specific pieces of work — check `decisions-log.md` before implementing anything related to notifications, image analysis ownership, or the `reason`/`serviceId` transition.
-3. **Firestore security rules are project-wide, not per-app.** `firestore.rules` in this repo has to be correct for both this app *and* the patient app's access patterns — coordinate before deploying changes to it.
+| [`decisions-log.md`](./decisions-log.md) | Tracks open questions and their resolutions as confirmed |
 
 ---
 
 ## Tech Stack
 
-- Flutter Web (frontend)
-- Firebase: Authentication, Cloud Firestore, Cloud Functions, Hosting, Cloud Messaging
-- Riverpod (state management)
-- Cloudinary (image storage, shared usage with the patient app)
-- TypeScript (Cloud Functions), Jest + `@firebase/rules-unit-testing` (rules/functions testing)
+- **Frontend**: Flutter Web, Riverpod (State Management), GoRouter
+- **Backend / BaaS**: Firebase (Authentication, Cloud Firestore, 2nd Gen Cloud Functions, Hosting)
+- **Regions**: Cloud Functions deployed to `asia-southeast1` (Singapore)
+- **Testing & Tooling**: Dart Analyzer, Jest, `@firebase/rules-unit-testing`, TypeScript
+- **Email Service**: Brevo API integration
 
 ---
 
 ## Prerequisites
 
-- Flutter SDK installed and on `PATH` (`flutter --version` to confirm)
-- Node.js installed — LTS recommended (this project's `functions/` was verified working with `@types/node@26.1.1`; if you're on a notably older or newer Node major version, watch for `@types/node` mismatches — see Troubleshooting)
+- Flutter SDK (stable channel) installed and on `PATH`
+- Node.js (v22 LTS recommended)
 - Firebase CLI: `npm install -g firebase-tools`
-- `flutterfire_cli`: `dart pub global activate flutterfire_cli`
-- Collaborator access to the shared Firebase project **`oralscope-78cda`** (ask whoever maintains the patient app — this repo does not own or create this project)
+- Access to Firebase project **`oralscope-78cda`**
 
 ---
 
-## First-Time Setup (do this once)
+## Local Development Workflow
 
-### 1. Clone and install
+### 1. Clone & Install
 ```bash
 git clone <repo-url>
 cd dental_clinic_staff_app
 flutter pub get
+cd functions && npm install && cd ..
 ```
 
-### 2. Connect Firebase
-```bash
-flutterfire configure
-```
-Select the **existing shared project `oralscope-78cda`** — do not create a new project. This generates `lib/firebase_options.dart`.
-
-### 3. Install Cloud Functions dependencies
-```bash
-cd functions
-npm install
-cd ..
-```
-
-If `functions/` isn't initialized yet on a fresh clone:
-```bash
-firebase init functions
-```
-Choose **TypeScript**, link to `oralscope-78cda`. **Important:** after init, verify `functions/tsconfig.json` matches the working config below — the default template generated by newer `firebase-tools` can include an aggressive `"module": "nodenext"` + `"verbatimModuleSyntax": true` combination that breaks Jest and CommonJS-style Cloud Functions. See Troubleshooting if you hit module-resolution errors.
-
-### 4. Install script dependencies (seed script)
-```bash
-cd scripts
-npm install
-cd ..
-```
-
-### 5. Install test dependencies
-```bash
-cd functions
-npm install --save-dev @firebase/rules-unit-testing jest ts-jest @types/jest @types/node typescript@5.6.3
-cd ..
-```
-**Pin TypeScript to `5.6.3` explicitly if you hit a version conflict** — newer TS major versions (e.g. `7.x`) aren't yet supported by `ts-jest` and will fail with an `ERESOLVE` error on install. Don't use `--force`/`--legacy-peer-deps` to push past this; downgrade instead (see Troubleshooting).
-
-### 6. Set up Firebase config files at the project root
-Confirm `firebase.json` has both of these sections (not just the default `flutter`/`emulators` blocks that `flutterfire configure` generates):
-```json
-{
-  "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
-  },
-  "functions": [
-    {
-      "source": "functions",
-      "codebase": "default",
-      "runtime": "nodejs22"
-    }
-  ]
-}
-```
-Without the `"firestore"` block, the emulator silently falls back to "allow all reads/writes," meaning your security rules aren't actually enforced even though the file exists. Without `"runtime"` in the functions config, the Functions emulator fails to load your function definitions.
-
-Create `firestore.indexes.json` if it doesn't exist:
-```bash
-echo '{"indexes": [], "fieldOverrides": []}' > firestore.indexes.json
-```
-
-### 7. Confirm `functions/tsconfig.json` is CommonJS-based
-```json
-{
-  "compilerOptions": {
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "target": "es2020",
-    "lib": ["es2020"],
-    "outDir": "lib",
-    "sourceMap": true,
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "types": ["node", "jest"]
-  },
-  "include": ["src/**/*", "test/**/*"]
-}
-```
-Do not add `"rootDir"` here while `test/` is also in `include` — it'll conflict (see Troubleshooting).
-
-### 8. Set up Jest
-Create `functions/jest.config.js`:
-```js
-module.exports = {
-  preset: "ts-jest",
-  testEnvironment: "node",
-  testMatch: ["**/test/**/*.test.ts"],
-  testTimeout: 20000,
-};
-```
-And confirm `functions/package.json` has:
-```json
-{ "scripts": { "test": "jest", "build": "tsc" } }
-```
-
----
-
-## Running in Development
-
-### Every time you start a dev session
-
-**Terminal 1 — start the emulators:**
+### 2. Run Firebase Emulators
 ```bash
 firebase emulators:start --project=oralscope-78cda
 ```
-Confirm the ready table shows Auth, Firestore, and Functions all running (Hosting will show "Failed to initialize" until you've built the Flutter web app at least once — that's expected and harmless before then).
-
-To persist data between sessions instead of starting empty every time:
+Or with persisted state:
 ```bash
 firebase emulators:start --project=oralscope-78cda --import=./emulator-data --export-on-exit
 ```
 
-**Terminal 2 — seed the emulator (first time, or after a full reset):**
-```bash
-cd scripts
-node seed-emulator.js
-```
-⚠️ **This script is not idempotent** — it always tries to *create* the staff/admin accounts and appointment docs from scratch. Running it twice against the same emulator session (without restarting/resetting in between) will fail with `auth/email-already-exists`. If you need to reseed, reset the emulator first:
-```bash
-# stop the emulator (Ctrl+C), then:
-rm -rf emulator-data          # PowerShell: Remove-Item -Recurse -Force emulator-data
-firebase emulators:start --project=oralscope-78cda --import=./emulator-data --export-on-exit
-# then reseed in a second terminal
-```
-
-**Terminal 2 (or 3) — run the Flutter app:**
+### 3. Run Flutter App (Dev Mode)
 ```bash
 flutter run -d chrome --dart-define=ENV=dev
 ```
 
-### Verify the dev environment is actually working
-- Emulator UI at `http://127.0.0.1:4000` — check `Firestore` and `Authentication` tabs show your seeded data
-- Flutter app launches with no red error screen, no Firebase init errors in the browser console
-- Log in with a seeded staff account: `staff1@clinic.test` / `password123`
-
-### Running Cloud Functions / rules tests
+### 4. Run Unit Tests & Analysis
 ```bash
-cd functions
-npm test
-```
-Requires the Firestore emulator to already be running (Terminal 1 above) — the rules tests connect to it directly rather than spinning up their own instance.
+# Cloud Functions & Firestore Rules Tests
+cd functions && npm test
 
-### Compiling functions without deploying (sanity check)
-```bash
-cd functions
-npx tsc --noEmit
+# Flutter Static Analysis & Unit Tests
+dart analyze
+flutter test
 ```
 
 ---
 
-## Running in Production
+## Manual Production Deployment
 
-**Do not deploy to production until the items flagged in `decisions-log.md` are resolved** — particularly #1 (slot-availability parity with the patient app) and #7 (patient app's actual write pattern), since these directly affect whether `firestore.rules` is correct for the live environment. Deploying incorrect rules risks either blocking the live patient app or leaving a security hole.
+To deploy manually from your terminal:
 
-### 1. Build the Flutter web app
 ```bash
-flutter build web --release --dart-define=ENV=prod
-```
-
-### 2. Deploy Firestore rules and indexes
-```bash
-firebase deploy --only firestore:rules,firestore:indexes --project oralscope-78cda
-```
-
-### 3. Deploy Cloud Functions
-```bash
+# 1. Compile Cloud Functions
 cd functions
 npm run build
 cd ..
-firebase deploy --only functions --project oralscope-78cda
-```
 
-### 4. Deploy Hosting
-```bash
-firebase deploy --only hosting --project oralscope-78cda
-```
+# 2. Build Flutter Web Release
+flutter build web --release --dart-define=ENV=prod
 
-### Or deploy everything at once (once confident in all of the above individually)
-```bash
-firebase deploy --project oralscope-78cda
+# 3. Deploy all services to Firebase (asia-southeast1)
+firebase deploy --project=oralscope-78cda --force
 ```
-
-### Post-deploy checklist
-See the full **Pre-Deploy Checklist** in `CONTRIBUTING.md` — covers composite indexes, rules testing against both apps' access patterns, Cloudinary preset configuration, and notification-ownership confirmation.
 
 ---
 
-## Troubleshooting
+## Setup & Health Checklist
 
-Real issues hit during initial setup, kept here so they don't get rediscovered from scratch.
-
-### `TypeError: admin.firestore is not a function`
-Caused by the legacy namespaced `firebase-admin` API failing to load correctly (partial install or version mismatch). Fix: use the **modular API** instead —
-```js
-const { initializeApp } = require("firebase-admin/app");
-const { getFirestore } = require("firebase-admin/firestore");
-const { getAuth } = require("firebase-admin/auth");
-```
-instead of `const admin = require("firebase-admin"); admin.firestore()`.
-
-### `ECONNREFUSED` when running the seed script
-The emulator (specifically Auth, on port `9099`) wasn't running yet, or wasn't fully started, when the script tried to connect. Make sure `firebase emulators:start` shows the full "All emulators ready" table in another terminal **before** running the seed script.
-
-### `npm install` fails with `ERESOLVE ... peer typescript@">=4.3 <7"`
-`ts-jest` doesn't yet support TypeScript 7.x. Don't force the install — downgrade instead:
-```bash
-npm install --save-dev typescript@5.6.3
-```
-Then retry installing the test packages.
-
-### `Cannot find name 'describe'` / `'test'` / `'expect'` (red lines in test files)
-`functions/tsconfig.json` has `"types": []`, which disables automatic `@types/*` inclusion. Fix:
-```json
-"types": ["node", "jest"]
-```
-
-### `ECMAScript imports and exports cannot be written in a CommonJS file under 'verbatimModuleSyntax'`
-Caused by a `tsconfig.json` using `"module": "nodenext"` + `"verbatimModuleSyntax": true` — a strict, ESM-oriented config that conflicts with Cloud Functions' default CommonJS setup. Fix: use the standard CommonJS config in step 7 of First-Time Setup above.
-
-### `File '.../test/firestore.rules.test.ts' is not under 'rootDir' '.../src'`
-Don't pin `"rootDir": "src"` if `test/` is also in your `include` array — remove the `rootDir` line and let TypeScript infer the common root automatically.
-
-### `FirebaseAuthError: The email address is already in use by another account` when reseeding
-The seed script isn't idempotent (see "Running in Development" above) — reset the emulator's Auth state before running it again, rather than running it twice against the same session.
-
-### Emulator says "did not find a Cloud Firestore rules file"
-`firebase.json` is missing the `"firestore": { "rules": "firestore.rules", ... }` block. Without it, the emulator defaults to allowing all reads/writes — meaning any rules testing you do is meaningless until this is fixed. See step 6 of First-Time Setup.
-
-### Emulator says "runtime field is required" for Functions
-`firebase.json`'s `functions` config is missing `"runtime": "nodejs22"` (or your equivalent Node major version). See step 6 of First-Time Setup.
-
----
-
-## Setup Verification Checklist
-
-Before starting real feature work, confirm all of these pass — see `GETTING-STARTED.md` Step 8 for the full end-to-end milestone check once individual pieces are verified:
-
-- [ ] `flutter run -d chrome --dart-define=ENV=dev` launches cleanly
-- [ ] `firebase emulators:start --project=oralscope-78cda` shows Auth, Firestore, Functions all running with no rules/runtime warnings
-- [ ] `node scripts/seed-emulator.js` completes without error against a fresh emulator state
-- [ ] Emulator UI shows all seeded collections and staff accounts
-- [ ] `cd functions && npm test` passes all rules tests
-- [ ] `cd functions && npx tsc --noEmit` compiles with no errors
-- [ ] `npm ls @types/node @types/jest @firebase/rules-unit-testing typescript` (from `functions/`) shows no missing/empty entries
+- [x] `flutter run -d chrome --dart-define=ENV=dev` launches cleanly
+- [x] `firebase emulators:start --project=oralscope-78cda` runs Auth, Firestore, Functions
+- [x] `cd functions && npm test` passes all 70 unit and security rule tests
+- [x] `dart analyze` passes with 0 issues
+- [x] `flutter build web --release --dart-define=ENV=prod` builds release bundle cleanly
+- [x] Live app deployed to [https://oralscope-78cda.web.app](https://oralscope-78cda.web.app)
