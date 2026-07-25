@@ -41,6 +41,7 @@
     }
   ],
   "hosting": {
+    "site": "oralscope-78cda",
     "public": "build/web",
     "ignore": [
       "firebase.json",
