@@ -14,8 +14,8 @@ enum StaffRole {
 
   static StaffRole fromString(String? role) {
     if (role == 'admin') return StaffRole.admin;
-    if (role == 'patient') return StaffRole.patient;
-    return StaffRole.staff;
+    if (role == 'staff') return StaffRole.staff;
+    return StaffRole.patient;
   }
 
   String toJson() => name;
@@ -62,17 +62,21 @@ class StaffUser {
       return DateTime.now();
     }
 
+    final firstName = json['firstName'] as String?;
+    final lastName = json['lastName'] as String?;
+    final name = (json['name'] as String?) ??
+        ('${firstName ?? ''} ${lastName ?? ''}').trim();
+
     return StaffUser(
       uid: documentId ?? (json['uid'] as String?) ?? '',
       role: StaffRole.fromString(json['role'] as String?),
-      name: (json['name'] as String?) ?? '',
+      name: name.isNotEmpty ? name : 'User',
       email: (json['email'] as String?) ?? '',
       phone: (json['phone'] as String?) ?? '',
-      active: (json['active'] as bool?) ?? false,
+      active: (json['active'] as bool?) ?? true,
       createdAt: parseDateTime(json['createdAt']),
-      firstName: json['firstName'] as String?,
-      lastName: json['lastName'] as String?,
-      // Staff/admin accounts are pre-provisioned — treat missing field as verified.
+      firstName: firstName,
+      lastName: lastName,
       isVerified: (json['isVerified'] as bool?) ?? true,
     );
   }
