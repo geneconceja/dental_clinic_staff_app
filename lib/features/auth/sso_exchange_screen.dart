@@ -66,9 +66,10 @@ class _SsoExchangeScreenState extends ConsumerState<SsoExchangeScreen> {
       // 2. Authenticate patient with Custom Auth Token
       await FirebaseAuth.instance.signInWithCustomToken(customToken);
 
-      // 3. Invalidate auth providers so Riverpod updates immediately
+      // 3. Invalidate auth providers and wait for profile resolution
       ref.invalidate(authStateProvider);
       ref.invalidate(staffProfileProvider);
+      await ref.read(staffProfileProvider.future);
 
       if (mounted) {
         // 4. Redirect to target path
