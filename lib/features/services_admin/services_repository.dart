@@ -33,11 +33,14 @@ class ServicesRepository {
   Stream<List<Service>> watchActiveServices() {
     return _collection
         .where('active', isEqualTo: true)
-        .orderBy('name')
         .snapshots()
-        .map((snap) => snap.docs
-            .map((doc) => Service.fromJson(doc.data(), documentId: doc.id))
-            .toList());
+        .map((snap) {
+      final list = snap.docs
+          .map((doc) => Service.fromJson(doc.data(), documentId: doc.id))
+          .toList();
+      list.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+      return list;
+    });
   }
 
   // ---------- CRUD Operations ----------

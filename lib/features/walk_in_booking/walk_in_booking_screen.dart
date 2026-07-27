@@ -379,24 +379,76 @@ class _ServiceDropdown extends ConsumerWidget {
     final servicesAsync = ref.watch(activeServicesProvider);
 
     return servicesAsync.when(
-      data: (services) => DropdownButtonFormField<Service>(
-        initialValue: selectedService,
-        decoration: const InputDecoration(
-          labelText: 'Service *',
-          prefixIcon: Icon(Icons.medical_services_outlined),
-        ),
-        hint: const Text('Select a service'),
-        items: services
-            .map((s) => DropdownMenuItem(
-                  value: s,
-                  child: Text(s.name),
-                ))
-            .toList(),
-        onChanged: onChanged,
-        validator: (v) => v == null ? 'Please select a service' : null,
-      ),
+      data: (services) {
+        if (services.isEmpty) {
+          return Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.warningLight,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.warning.withAlpha(60)),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.warning_amber_outlined,
+                    color: AppColors.warning, size: 18),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'No active services available. Please create or activate services in Services Admin.',
+                    style: TextStyle(color: AppColors.warning, fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        Service? dropdownValue;
+        if (selectedService != null &&
+            services.any((s) => s.id == selectedService!.id)) {
+          dropdownValue =
+              services.firstWhere((s) => s.id == selectedService!.id);
+        }
+
+        return DropdownButtonFormField<Service>(
+          value: dropdownValue,
+          decoration: const InputDecoration(
+            labelText: 'Service *',
+            prefixIcon: Icon(Icons.medical_services_outlined),
+          ),
+          hint: const Text('Select a service'),
+          items: services
+              .map((s) => DropdownMenuItem(
+                    value: s,
+                    child: Text(s.name),
+                  ))
+              .toList(),
+          onChanged: onChanged,
+          validator: (v) => v == null ? 'Please select a service' : null,
+        );
+      },
       loading: () => const LinearProgressIndicator(),
-      error: (_, __) => const Text('Failed to load services'),
+      error: (err, _) => Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.errorLight,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.error.withAlpha(60)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.error_outline, color: AppColors.error, size: 18),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Failed to load services: $err',
+                style: const TextStyle(color: AppColors.error, fontSize: 13),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
