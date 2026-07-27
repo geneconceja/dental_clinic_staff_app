@@ -412,7 +412,7 @@ class _ServiceDropdown extends ConsumerWidget {
         }
 
         return DropdownButtonFormField<Service>(
-          value: dropdownValue,
+          initialValue: dropdownValue,
           decoration: const InputDecoration(
             labelText: 'Service *',
             prefixIcon: Icon(Icons.medical_services_outlined),
