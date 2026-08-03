@@ -2,7 +2,7 @@
 
 Internal Flutter Web app used by clinic staff and admin to review patient-submitted appointment requests, book walk-in appointments, manage patient registration & email verification, and manage clinic services and settings.
 
-> **This repo handles both Staff/Admin workflows and the Patient Web Portal.** It connects to the shared Firebase project (`oralscope-78cda`). See [`dental-clinic-appointment-system-plan.md`](./dental-clinic-appointment-system-plan.md) for the full architecture rationale.
+> **This repo handles both Staff/Admin workflows and the Patient Web Portal.** It connects to the shared Firebase project (`oralscope-78cda`). See [`dental-clinic-appointment-system-plan.md`](./docs/dental-clinic-appointment-system-plan.md) for the full architecture rationale.
 
 ---
 
@@ -25,12 +25,15 @@ Internal Flutter Web app used by clinic staff and admin to review patient-submit
 - **Email Verification Gate**: Interactive verification gate for patients with 60-second resend cooldown and auto-verification detection.
 - **Mobile-to-Web SSO Handoff**: Cloud Function powered single-use handoff tokens (`generateSsoToken` & `consumeSsoToken`) for authenticating patients from mobile apps.
 
-### 📅 Appointment Management
+### 📅 Appointment & Queue Management
 - **Walk-In Desk Booking**: Concurrency-safe Cloud Function (`createWalkInAppointment`) preventing slot double-booking across patient and staff apps.
+- **Review Queue**: Dedicated view for staff to review, approve, or cancel patient-submitted appointment requests.
+- **Interactive Calendar**: Day and week schedule grid views for quick appointment management.
 - **Appointment Status State Machine**: Enforces valid status transitions (`pending` ➔ `confirmed` | `cancelled`; `confirmed` ➔ `completed` | `cancelled` | `no-show`).
-- **Brevo Email Integration**: Automatic email notifications triggered on status updates (`onAppointmentStatusChange`).
+- **Automated Reminders & Notifications**: Scheduled reminder function (`sendReminders`) and Brevo email notifications triggered on status updates (`onAppointmentStatusChange`).
 
 ### ⚙️ Administration & Security
+- **Staff Account Management**: Management interface for clinic administrators to manage staff accounts and roles.
 - **System Audit Logs**: Immutable system activity logging stored in Firestore `activity_logs`.
 - **Services Admin**: CRUD management for clinic services, durations, and pricing.
 - **Clinic Settings**: Operational hours, maximum daily slot capacity, working days, and closed holidays.
@@ -55,14 +58,15 @@ Continuous integration and continuous deployment are managed automatically via G
 
 | Document | What it's for |
 |---|---|
-| [`dental-clinic-appointment-system-plan.md`](./dental-clinic-appointment-system-plan.md) | Full technical spec: data model, business logic, phased implementation plan |
+| [`dental-clinic-appointment-system-plan.md`](./docs/dental-clinic-appointment-system-plan.md) | Full technical spec: data model, business logic, phased implementation plan |
 | [`CONTRIBUTING.md`](./CONTRIBUTING.md) | Branching strategy, testing requirements, CI/CD, pre-deploy checklist |
-| [`GETTING-STARTED.md`](./GETTING-STARTED.md) | Step-by-step build order from empty repo to first working feature |
-| [`app-workflow-transaction-flow.md`](./app-workflow-transaction-flow.md) | Diagrams: user flows, booking transaction, status lifecycle, notification triggers |
+| [`GETTING-STARTED.md`](./docs/GETTING-STARTED.md) | Step-by-step build order from empty repo to first working feature |
+| [`dev-process.md`](./docs/dev-process.md) | Development process guidelines, commit standards, and roadmap tracking |
+| [`app-workflow-transaction-flow.md`](./docs/app-workflow-transaction-flow.md) | Diagrams: user flows, booking transaction, status lifecycle, notification triggers |
 | [`firestore.rules`](./firestore.rules) | Security rules governing users, appointments, services, settings, activity logs, and sso tokens |
-| [`functions-api-contract.md`](./functions-api-contract.md) | Exact input/output contract for every Cloud Function |
-| [`schema-types.ts`](./schema-types.ts) | Source-of-truth TypeScript types for all Firestore documents |
-| [`decisions-log.md`](./decisions-log.md) | Tracks open questions and their resolutions as confirmed |
+| [`functions-api-contract.md`](./docs/functions-api-contract.md) | Exact input/output contract for every Cloud Function |
+| [`schema-types.ts`](./functions/src/schema-types.ts) | Source-of-truth TypeScript types for all Firestore documents |
+| [`decisions-log.md`](./docs/decisions-log.md) | Tracks open questions and their resolutions as confirmed |
 
 ---
 
@@ -104,12 +108,17 @@ Or with persisted state:
 firebase emulators:start --project=oralscope-78cda --import=./emulator-data --export-on-exit
 ```
 
-### 3. Run Flutter App (Dev Mode)
+### 3. Seed Local Emulator (Optional)
+```bash
+node scripts/seed-emulator.js
+```
+
+### 4. Run Flutter App (Dev Mode)
 ```bash
 flutter run -d chrome --dart-define=ENV=dev
 ```
 
-### 4. Run Unit Tests & Analysis
+### 5. Run Unit Tests & Analysis
 ```bash
 # Cloud Functions & Firestore Rules Tests
 cd functions && npm test
@@ -144,7 +153,7 @@ firebase deploy --project=oralscope-78cda --force
 
 - [x] `flutter run -d chrome --dart-define=ENV=dev` launches cleanly
 - [x] `firebase emulators:start --project=oralscope-78cda` runs Auth, Firestore, Functions
-- [x] `cd functions && npm test` passes all 70 unit and security rule tests
+- [x] `cd functions && npm test` passes unit and security rule tests
 - [x] `dart analyze` passes with 0 issues
 - [x] `flutter build web --release --dart-define=ENV=prod` builds release bundle cleanly
 - [x] Live app deployed to [https://oralscope-78cda.web.app](https://oralscope-78cda.web.app)

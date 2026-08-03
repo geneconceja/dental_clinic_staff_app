@@ -13,7 +13,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/models/staff_user.dart';
 import '../../core/theme/app_colors.dart';
 import '../auth/auth_providers.dart';
+import '../auth/change_password_dialog.dart';
+import 'add_staff_dialog.dart';
+import 'admin_reset_password_dialog.dart';
 import 'staff_repository.dart';
+
 
 /// StreamProvider for active and inactive staff users
 final allStaffProvider = StreamProvider<List<StaffUser>>((ref) {
@@ -36,8 +40,46 @@ class _StaffScreenState extends ConsumerState<StaffScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Staff Management'),
+        actions: [
+          IconButton(
+            tooltip: 'Change My Password',
+            icon: const Icon(Icons.lock_reset),
+            onPressed: () async {
+              final changed = await ChangePasswordDialog.show(context);
+              if (changed == true && context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Your password has been updated successfully.'),
+                    backgroundColor: AppColors.success,
+                  ),
+                );
+              }
+            },
+          ),
+          const SizedBox(width: 8),
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: ElevatedButton.icon(
+              onPressed: () async {
+                final created = await AddStaffDialog.show(context);
+                if (created == true && context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Staff member account created successfully.'),
+                      backgroundColor: AppColors.success,
+                    ),
+                  );
+                }
+              },
+              icon: const Icon(Icons.person_add),
+              label: const Text('Add Staff Member'),
+            ),
+          ),
+        ],
       ),
+
       body: allStaffAsync.when(
+
         data: (staffList) {
           if (staffList.isEmpty) {
             return const Center(child: Text('No staff members registered.'));
@@ -181,7 +223,7 @@ class _StaffCard extends StatelessWidget {
             const Divider(height: 1, color: AppColors.divider),
             const SizedBox(height: 12),
 
-            // Row 3: Admin Toggles
+            // Row 3: Admin Toggles & Actions
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -221,9 +263,31 @@ class _StaffCard extends StatelessWidget {
                         ),
                       ),
 
-                // Active Switch
                 Row(
                   children: [
+                    // Reset Password Button (Admin override)
+                    IconButton(
+                      tooltip: 'Reset Password',
+                      icon: const Icon(Icons.vpn_key_outlined, size: 20),
+                      onPressed: () async {
+                        final reset = await AdminResetPasswordDialog.show(
+                          context,
+                          staff,
+                        );
+                        if (reset == true && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Password reset for ${staff.name} successfully.',
+                              ),
+                              backgroundColor: AppColors.success,
+                            ),
+                          );
+                        }
+                      },
+                    ),
+
+                    // Active Switch
                     Text(
                       staff.active ? 'Active' : 'Inactive',
                       style: theme.textTheme.bodySmall?.copyWith(
@@ -233,7 +297,7 @@ class _StaffCard extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 4),
                     Switch(
                       value: staff.active,
                       activeTrackColor: AppColors.primary.withAlpha(120),
@@ -244,6 +308,7 @@ class _StaffCard extends StatelessWidget {
                 ),
               ],
             ),
+
           ],
         ),
       ),

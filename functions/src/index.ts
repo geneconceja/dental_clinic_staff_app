@@ -34,3 +34,9 @@ export { onAppointmentStatusChange } from "./onAppointmentStatusChange";
 export { generateSsoToken } from "./generateSsoToken";
 export { consumeSsoToken } from "./consumeSsoToken";
 
+// Phase 7 — Staff Management Engine
+export { createStaffUser } from "./createStaffUser";
+export { adminResetPassword } from "./adminResetPassword";
+
+
+

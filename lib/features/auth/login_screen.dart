@@ -13,6 +13,8 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import 'auth_providers.dart';
 import 'auth_repository.dart';
+import 'forgot_password_dialog.dart';
+
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -135,10 +137,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           TextFormField(
                             controller: _passwordController,
                             obscureText: _obscurePassword,
+                            enabled: !_isLoading,
                             textInputAction: TextInputAction.done,
                             onFieldSubmitted: (_) => _submit(),
                             decoration: InputDecoration(
                               labelText: 'Password',
+                              border: const OutlineInputBorder(),
                               prefixIcon: const Icon(Icons.lock_outline),
                               suffixIcon: IconButton(
                                 icon: Icon(
@@ -158,14 +162,41 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               return null;
                             },
                           ),
+                          const SizedBox(height: 8),
+
+                          // Forgot password button
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: _isLoading
+                                  ? null
+                                  : () async {
+                                      final sent = await ForgotPasswordDialog.show(
+                                        context,
+                                        initialEmail: _emailController.text,
+                                      );
+                                      if (sent == true && context.mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Password reset email sent! Check your inbox.',
+                                            ),
+                                            backgroundColor: AppColors.success,
+                                          ),
+                                        );
+                                      }
+                                    },
+                              child: const Text('Forgot password?'),
+                            ),
+                          ),
 
                           // Error banner
                           if (_errorMessage != null) ...[
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 12),
                             _ErrorBanner(message: _errorMessage!),
                           ],
 
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 20),
 
                           // Submit button
                           ElevatedButton(

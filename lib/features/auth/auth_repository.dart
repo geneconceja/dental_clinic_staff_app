@@ -157,11 +157,46 @@ class AuthRepository {
     });
   }
 
+  // --- Password Management ---
+
+  /// Re-authenticates the current user with [currentPassword] and updates
+  /// their password to [newPassword]. Throws [AuthException] on failure.
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null || user.email == null) {
+      throw const AuthException('No user is currently signed in.');
+    }
+
+    try {
+      final cred = EmailAuthProvider.credential(
+        email: user.email!,
+        password: currentPassword,
+      );
+      await user.reauthenticateWithCredential(cred);
+      await user.updatePassword(newPassword);
+    } on FirebaseAuthException catch (e) {
+      throw AuthException(_mapFirebaseError(e.code));
+    }
+  }
+
+  /// Sends a password reset email link to [email].
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email.trim());
+    } on FirebaseAuthException catch (e) {
+      throw AuthException(_mapFirebaseError(e.code));
+    }
+  }
+
   // --- Sign out ---
 
   Future<void> signOut() async {
     await _auth.signOut();
   }
+
 
   // --- Staff / patient profile ---
 

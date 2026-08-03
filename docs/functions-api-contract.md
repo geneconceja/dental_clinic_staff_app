@@ -172,13 +172,94 @@ Do not implement until decisions-log.md's "notification ownership" question is r
 
 ---
 
+## 7. `createStaffUser`
+
+**Type:** Callable Cloud Function
+**Auth required:** Yes — caller must have a `users/{uid}` doc with `role == 'admin'`
+
+### Input
+```typescript
+{
+  email: string;     // required, valid email address
+  password: string;  // required, minimum 6 characters
+  name: string;      // required, non-empty
+  phone: string;     // required, non-empty
+  role: "staff" | "admin"; // required
+}
+```
+
+### Behavior
+1. Verify caller is authenticated and has an admin role in `users/{callerUid}`. Throw `permission-denied` otherwise.
+2. Validate inputs (`email`, `password`, `name`, `phone`, `role`).
+3. Call Firebase Admin Auth (`getAuth().createUser`) to provision credentials without logging out current client session.
+4. Write `users/{newUid}` Firestore document with `role`, `name`, `email`, `phone`, `active: true`, and `createdAt`.
+5. Create an audit entry in `activity_logs`.
+
+### Output
+```typescript
+{
+  uid: string;
+  status: "created";
+}
+```
+
+### Errors
+| Code | When |
+|---|---|
+| `permission-denied` | Caller is not an admin user |
+| `invalid-argument` | Missing or invalid parameters |
+| `already-exists` | Email address is already registered |
+| `internal` | Failed to write user document |
+
+---
+
+## 8. `adminResetPassword`
+
+**Type:** Callable Cloud Function
+**Auth required:** Yes — caller must have a `users/{uid}` doc with `role == 'admin'`
+
+### Input
+```typescript
+{
+  targetUid: string;   // required, non-empty user UID
+  newPassword: string; // required, minimum 6 characters
+}
+```
+
+### Behavior
+1. Verify caller is authenticated and has an admin role in `users/{callerUid}`. Throw `permission-denied` otherwise.
+2. Validate inputs (`targetUid`, `newPassword`).
+3. Call Firebase Admin Auth (`getAuth().updateUser`) to set the new password directly on the target user's account.
+4. Append an audit entry in `activity_logs`.
+
+### Output
+```typescript
+{
+  targetUid: string;
+  status: "updated";
+}
+```
+
+### Errors
+| Code | When |
+|---|---|
+| `permission-denied` | Caller is not an admin user |
+| `invalid-argument` | Missing targetUid or password < 6 chars |
+| `not-found` | Target user UID does not exist |
+
+---
+
 ## Summary Table
 
 | Function | Type | Auth | Status |
 |---|---|---|---|
-| `createWalkInAppointment` | Callable | staff/admin | Ready to implement |
-| `updateAppointmentStatus` | Callable | staff/admin | Ready to implement |
+| `createWalkInAppointment` | Callable | staff/admin | Implemented |
+| `updateAppointmentStatus` | Callable | staff/admin | Implemented |
+| `createStaffUser` | Callable | admin | Implemented |
+| `adminResetPassword` | Callable | admin | Implemented |
 | `cancelAppointmentAsPatient` | External (patient app) | N/A | Reference only — not built here |
-| `analyzeWalkInImage` | Trigger or callable | N/A (internal) | Ready to implement, pending pattern choice |
-| `sendReminders` | Scheduled | N/A (internal) | **Blocked** on ownership decision |
-| `onAppointmentStatusChange` | Trigger | N/A (internal) | **Blocked** on ownership decision |
+| `analyzeWalkInImage` | Trigger or callable | N/A (internal) | Deferred |
+| `sendReminders` | Scheduled | N/A (internal) | Implemented |
+| `onAppointmentStatusChange` | Trigger | N/A (internal) | Implemented |
+
+
