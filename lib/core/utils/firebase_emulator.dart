@@ -15,7 +15,7 @@ import 'package:flutter/foundation.dart';
 // Emulator ports — must match firebase.json / emulator startup config.
 final String _emulatorHost = kIsWeb ? 'localhost' : '127.0.0.1';
 const int _authPort = 9099;
-const int _firestorePort = 8080;
+const int _firestorePort = 8085;
 const int _functionsPort = 5001;
 
 /// Points all Firebase SDKs at the local emulator suite.

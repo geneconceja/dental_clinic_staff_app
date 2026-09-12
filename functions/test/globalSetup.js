@@ -23,7 +23,7 @@ const PROJECT_ROOT = path.resolve(__dirname, "..", "..");
 const PROJECT_ID = "oralscope-78cda";
 
 const EMULATOR_PORTS = [
-  { name: "Firestore", port: 8080 },
+  { name: "Firestore", port: 8085 },
   { name: "Auth", port: 9099 },
 ];
 

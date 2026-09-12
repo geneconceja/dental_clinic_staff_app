@@ -14,7 +14,7 @@ import { getFirestore, Firestore, Timestamp } from "firebase-admin/firestore";
 import { CallableRequest } from "firebase-functions/v2/https";
 
 // Point firebase-admin at the local emulators.
-process.env.FIRESTORE_EMULATOR_HOST = "127.0.0.1:8080";
+process.env.FIRESTORE_EMULATOR_HOST = "127.0.0.1:8085";
 process.env.FIREBASE_AUTH_EMULATOR_HOST = "127.0.0.1:9099";
 
 const PROJECT_ID = "oralscope-78cda";

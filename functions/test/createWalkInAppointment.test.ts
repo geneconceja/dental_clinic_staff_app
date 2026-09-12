@@ -24,7 +24,7 @@ import { CallableRequest } from "firebase-functions/v2/https";
 // ---------- Emulator environment setup ----------
 
 // Point firebase-admin at the local emulators before any SDK call.
-process.env.FIRESTORE_EMULATOR_HOST = "127.0.0.1:8080";
+process.env.FIRESTORE_EMULATOR_HOST = "127.0.0.1:8085";
 process.env.FIREBASE_AUTH_EMULATOR_HOST = "127.0.0.1:9099";
 
 // Use a dedicated test project ID — matches the emulator's project.

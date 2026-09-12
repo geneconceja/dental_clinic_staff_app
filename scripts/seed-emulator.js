@@ -23,7 +23,7 @@ const { getAuth } = require("firebase-admin/auth");
 
 // Point the Admin SDK at the local emulators, NOT production.
 // These must match the ports in firebase.json / emulators:start output.
-process.env.FIRESTORE_EMULATOR_HOST = "127.0.0.1:8080";
+process.env.FIRESTORE_EMULATOR_HOST = "127.0.0.1:8085";
 process.env.FIREBASE_AUTH_EMULATOR_HOST = "127.0.0.1:9099";
 
 initializeApp({ projectId: "oralscope-78cda" });

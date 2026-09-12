@@ -9,7 +9,7 @@ const { getFirestore, Timestamp, FieldValue } = require('firebase-admin/firestor
 const { getAuth } = require('firebase-admin/auth');
 
 process.env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099';
-process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
+process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8085';
 
 initializeApp({ projectId: 'oralscope-78cda' });
 
