@@ -110,6 +110,15 @@ class AppShell extends ConsumerWidget {
                     ),
                   ),
                   _SidebarItem(
+                    icon: Icons.analytics_outlined,
+                    label: 'Analytics',
+                    active: currentRoute == '/analytics',
+                    onTap: () {
+                      if (isMobile) Navigator.of(context).pop();
+                      context.goNamed(AppRoutes.analytics);
+                    },
+                  ),
+                  _SidebarItem(
                     icon: Icons.medical_services_outlined,
                     label: 'Services',
                     active: currentRoute == '/services',

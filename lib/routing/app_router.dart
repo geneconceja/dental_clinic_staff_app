@@ -32,6 +32,7 @@ import '../features/services_admin/services_screen.dart';
 import '../features/settings/settings_screen.dart';
 import '../features/staff_management/staff_screen.dart';
 import '../features/calendar/calendar_screen.dart';
+import '../features/analytics/analytics_screen.dart';
 
 // ---------- Route name constants ----------
 
@@ -51,6 +52,7 @@ abstract final class AppRoutes {
   static const services = 'services';
   static const settings = 'settings';
   static const staff = 'staff';
+  static const analytics = 'analytics';
   static const forbidden = 'forbidden';
 }
 
@@ -141,7 +143,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       // Role-based route protection
       final role = profile.role.name;
-      const adminOnlyPaths = ['/services', '/settings', '/staff'];
+      const adminOnlyPaths = ['/services', '/settings', '/staff', '/analytics'];
       const staffPaths = ['/dashboard', '/calendar', '/review-queue', '/walk-in/new'];
 
       final isStaffPath = staffPaths.contains(state.matchedLocation) ||
@@ -269,6 +271,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/activity-logs',
             name: 'activityLogs',
             builder: (_, __) => const ActivityLogsScreen(),
+          ),
+          GoRoute(
+            path: '/analytics',
+            name: AppRoutes.analytics,
+            builder: (_, __) => const AnalyticsScreen(),
           ),
         ],
       ),
