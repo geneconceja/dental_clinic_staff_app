@@ -38,5 +38,5 @@ export { consumeSsoToken } from "./consumeSsoToken";
 export { createStaffUser } from "./createStaffUser";
 export { adminResetPassword } from "./adminResetPassword";
 
-
-
+// Analytics — Admin Dashboard
+export { getAdminAnalytics } from "./getAdminAnalytics";
