@@ -143,12 +143,13 @@ function weekOfMonth(date: Date, monthStart: Date): number {
 export async function getAdminAnalyticsHandler(
   request: CallableRequest<GetAdminAnalyticsInput>
 ): Promise<AdminAnalyticsResult> {
-  // --- Auth guard ---
-  if (!request.auth) {
-    throw new HttpsError("unauthenticated", "Authentication required.");
-  }
+  try {
+    // --- Auth guard ---
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Authentication required.");
+    }
 
-  const db = getFirestore();
+    const db = getFirestore();
   const callerUid = request.auth.uid;
 
   // Verify admin role
@@ -296,13 +297,23 @@ export async function getAdminAnalyticsHandler(
     computedAt:      new Date().toISOString(),
   };
 
-  logger.info("getAdminAnalytics result", result);
-  return result;
+    logger.info("getAdminAnalytics result", result);
+    return result;
+  } catch (error: any) {
+    logger.error("Error in getAdminAnalyticsHandler:", {
+      message: error?.message || String(error),
+      stack: error?.stack,
+    });
+    if (error instanceof HttpsError) {
+      throw error;
+    }
+    throw new HttpsError("internal", error?.message || "Internal function error");
+  }
 }
 
 // ---------- Exported Cloud Function ----------
 
 export const getAdminAnalytics = onCall<GetAdminAnalyticsInput>(
-  { region: "asia-southeast1" },
+  { cors: true, region: "asia-southeast1" },
   getAdminAnalyticsHandler
 );
