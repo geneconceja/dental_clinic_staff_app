@@ -118,5 +118,5 @@ jobs:
       - name: Install Latest Firebase CLI
         run: npm install -g firebase-tools
 
-      - name: Deploy to Firebase (Hosting, Functions, Firestore Rules)
-        run: firebase deploy --project=oralscope-78cda --force
+      - name: Deploy to Firebase (Hosting and Firestore)
+        run: firebase deploy --only hosting,firestore --project=oralscope-78cda --force

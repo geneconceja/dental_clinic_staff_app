@@ -215,6 +215,7 @@ dental_clinic_staff_app/
 
 | Document | Purpose |
 |---|---|
+| [`local-emulator-testing-guide.md`](./docs/local-emulator-testing-guide.md) | Complete step-by-step guide for local emulator setup, seeding, and testing |
 | [`dental-clinic-appointment-system-plan.md`](./docs/dental-clinic-appointment-system-plan.md) | Full technical spec: data model, business logic, phased implementation |
 | [`dev-process.md`](./docs/dev-process.md) | Phase-by-phase development history with implementation details |
 | [`functions-api-contract.md`](./docs/functions-api-contract.md) | Input/output contract for every Cloud Function |
