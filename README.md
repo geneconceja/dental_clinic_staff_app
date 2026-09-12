@@ -65,6 +65,7 @@ Both portals share a single Firebase project with strict Firestore security rule
 
 - Flutter SDK (stable channel) on `PATH`
 - Node.js 22 LTS
+- Java Runtime (JRE/JDK 11+) — *required by Firebase to run the Firestore emulator*
 - Firebase CLI: `npm install -g firebase-tools`
 
 ### 1. Clone & Install
@@ -73,7 +74,7 @@ Both portals share a single Firebase project with strict Firestore security rule
 git clone <repo-url>
 cd dental_clinic_staff_app
 flutter pub get
-cd functions && npm install && cd ..
+cd functions && npm install && npm run build && cd ..
 ```
 
 ### 2. Configure Environment
@@ -92,8 +93,10 @@ cp functions/.env.example functions/.env
 ### 3. Start Firebase Emulators
 
 ```bash
-firebase emulators:start --project=oralscope-78cda
+firebase emulators:start
 ```
+
+> 📖 **Detailed Guide:** See [`docs/local-emulator-testing-guide.md`](./docs/local-emulator-testing-guide.md) for full architecture diagrams, functions verification, and persistent data instructions.
 
 ### 4. Seed Demo Data
 
@@ -161,7 +164,11 @@ cd functions && npm run build && cd ..
 flutter build web --release --dart-define=ENV=prod
 
 # 3. Deploy
-firebase deploy --project=oralscope-78cda --force
+# Spark (free) plan — deploys Hosting & Firestore:
+firebase deploy --only hosting,firestore --project=oralscope-78cda --force
+
+# Blaze (pay-as-you-go) plan — deploys Hosting, Firestore, and Cloud Functions:
+# firebase deploy --project=oralscope-78cda --force
 ```
 
 ---
