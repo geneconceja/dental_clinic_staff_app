@@ -174,7 +174,7 @@ class _PatientBookingWizardScreenState extends ConsumerState<PatientBookingWizar
             patientEmail: profile.email,
             firstName: firstName,
             lastName: lastName,
-            phoneNumber: profile.phone.isNotEmpty ? profile.phone : '09170000000',
+            phoneNumber: profile.phone.isNotEmpty ? profile.phone : '09000000000',
             serviceId: _selectedService!.id,
             serviceName: _selectedService!.name,
             dateStr: dateStr,

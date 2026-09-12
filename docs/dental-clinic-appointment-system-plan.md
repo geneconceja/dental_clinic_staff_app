@@ -1,19 +1,22 @@
-# Dental Clinic Appointment System — Staff/Admin App Specification (v4)
+# Dental Clinic Appointment System — Staff/Admin App Specification (v4 → v5)
 
 > This document is a complete technical specification intended to be handed to an AI coding assistant (or a developer) to build the system. It includes context, architecture, data models, business logic, and phased implementation instructions.
 >
 > **Revision note (v4):** This project is now scoped as a **standalone staff/admin Flutter Web app**. Patients use a **separate, already-built and live app on a different platform** to register and submit appointment requests. Both apps share the same Firebase project. This app **consumes the existing Firestore schema** rather than designing it — the patient app owns that schema going forward. This version also adds support for **staff-booked walk-in appointments**, which the original schema didn't account for.
+>
+> **Revision note (v5):** Scope was subsequently expanded to include a **patient-facing web portal** built directly into this Flutter Web app. The portal provides self-registration, email verification, a multi-step booking wizard, appointment management, and a patient profile screen — accessed via the `/patient/*` route namespace. Staff and patient UIs are served from the same deployment at `oralscope-78cda.web.app`, separated by role-based routing. The statement below ("This app does not include any patient-facing registration...") reflects the original v4 design intent and is superseded by the v5 expansion.
 
 ---
 
 ## 1. Project Overview
 
-Build a **staff/admin-only** Flutter Web app for a single-dentist clinic that:
-- Reviews and manages appointment requests submitted by patients through the separate, existing patient app
-- Allows staff to book **walk-in appointments** directly (patients without a patient-app account)
+Build a **staff/admin Flutter Web app** for a single-dentist clinic that:
+- Reviews and manages appointment requests submitted by patients
+- Allows staff to book **walk-in appointments** directly (patients without an account)
 - Manages services, clinic settings, and staff accounts
+- Provides a **patient-facing web portal** for self-registration and appointment booking (added in v5)
 
-**This app does not include any patient-facing registration, login, or self-booking UI** — that already exists in the separate patient app and is out of scope here.
+**Note (v4 original scope, superseded by v5):** ~~This app does not include any patient-facing registration, login, or self-booking UI~~ — the patient web portal was added in v5.
 
 **Tech Stack:**
 - **Frontend:** Flutter Web (staff/admin only — no patient-facing routes)

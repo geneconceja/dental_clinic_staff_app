@@ -57,6 +57,9 @@ async function seed() {
           email: account.email,
           password: account.password,
           displayName: account.name,
+          // Pre-verify email so the patient portal is immediately accessible
+          // without manual steps in the Emulator UI.
+          emailVerified: account.role === 'patient',
         });
         uid = userRecord.uid;
         console.log(`Created new auth account for ${account.role} user: ${account.email} (${uid})`);
@@ -67,10 +70,20 @@ async function seed() {
 
     staffUids[account.role + "_" + account.email] = uid;
 
+    // Build the Firestore user doc. Patient accounts include extra fields
+    // (firstName, lastName, isVerified) used by the patient portal and router.
+    const isPatient = account.role === 'patient';
+    const nameParts = account.name.split(' ');
     await db.collection("users").doc(uid).set({
       uid: uid,
       role: account.role,
       name: account.name,
+      ...(isPatient && {
+        firstName: nameParts[0] ?? account.name,
+        lastName: nameParts.slice(1).join(' ') || 'Patient',
+        // true = bypass email verification gate in the router
+        isVerified: true,
+      }),
       email: account.email,
       phone: "09171234567",
       active: true,

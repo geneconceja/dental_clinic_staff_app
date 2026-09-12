@@ -1,97 +1,74 @@
-# Dental Clinic Appointment System — Staff/Admin App
+# OralScope — Dental Clinic Staff & Patient Portal
 
-Internal Flutter Web app used by clinic staff and admin to review patient-submitted appointment requests, book walk-in appointments, manage patient registration & email verification, and manage clinic services and settings.
+> A full-stack **Flutter Web + Firebase** production application built for a single-dentist dental clinic. Staff and patients are served from the same web app, separated by role-based routing.
 
-> **This repo handles both Staff/Admin workflows and the Patient Web Portal.** It connects to the shared Firebase project (`oralscope-78cda`). See [`dental-clinic-appointment-system-plan.md`](./docs/dental-clinic-appointment-system-plan.md) for the full architecture rationale.
-
----
-
-## 🌐 Live Production Deployment
-
-| Component | Status | Details |
-| --- | --- | --- |
-| **Live Web App** | 🟢 **Live** | [https://oralscope-78cda.web.app](https://oralscope-78cda.web.app) |
-| **Cloud Functions (2nd Gen)** | 🟢 **Active** | Deployed in region **`asia-southeast1`** (Singapore — optimal for Philippines) |
-| **Firestore Security Rules** | 🟢 **Active** | Production-hardened with patient self-registration and immutable audit logs |
-| **Automated CI/CD** | 🟢 **Active** | GitHub Actions pipeline via [`.github/workflows/deploy.yml`](./.github/workflows/deploy.yml) |
+![Flutter](https://img.shields.io/badge/Flutter-Web-02569B?logo=flutter)
+![Firebase](https://img.shields.io/badge/Firebase-Firestore%20%7C%20Auth%20%7C%20Functions-FFCA28?logo=firebase&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-Cloud%20Functions-3178C6?logo=typescript)
+![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?logo=github-actions&logoColor=white)
+[![Live App](https://img.shields.io/badge/Live%20Demo-oralscope--78cda.web.app-4CAF50)](https://oralscope-78cda.web.app)
 
 ---
 
-## 🚀 Key Implemented Features
+## What This Is
 
-### 🔑 Auth & Access Control
-- **Role-Based Routing**: Multi-role support (`admin`, `staff`, `patient`). Access control guarded centrally via Riverpod and `GoRouter`.
-- **Patient Self-Registration**: Full patient signup form with password strength indicator, auto-syncing Firestore profiles, and `isVerified` protection.
-- **Email Verification Gate**: Interactive verification gate for patients with 60-second resend cooldown and auto-verification detection.
-- **Mobile-to-Web SSO Handoff**: Cloud Function powered single-use handoff tokens (`generateSsoToken` & `consumeSsoToken`) for authenticating patients from mobile apps.
+OralScope is a full-stack clinic management system with two portals served from a single Flutter Web deployment:
 
-### 📅 Appointment & Queue Management
-- **Walk-In Desk Booking**: Concurrency-safe Cloud Function (`createWalkInAppointment`) preventing slot double-booking across patient and staff apps.
-- **Review Queue**: Dedicated view for staff to review, approve, or cancel patient-submitted appointment requests.
-- **Interactive Calendar**: Day and week schedule grid views for quick appointment management.
-- **Appointment Status State Machine**: Enforces valid status transitions (`pending` ➔ `confirmed` | `cancelled`; `confirmed` ➔ `completed` | `cancelled` | `no-show`).
-- **Automated Reminders & Notifications**: Scheduled reminder function (`sendReminders`) and Brevo email notifications triggered on status updates (`onAppointmentStatusChange`).
+- **Staff/Admin Portal** — appointment review queue, walk-in booking desk, calendar, services management, staff account administration, and a real-time audit log.
+- **Patient Portal** — self-registration with email verification, a multi-step booking wizard with real-time slot availability, appointment history, and profile management.
 
-### ⚙️ Administration & Security
-- **Staff Account Management**: Management interface for clinic administrators to manage staff accounts and roles.
-- **System Audit Logs**: Immutable system activity logging stored in Firestore `activity_logs`.
-- **Services Admin**: CRUD management for clinic services, durations, and pricing.
-- **Clinic Settings**: Operational hours, maximum daily slot capacity, working days, and closed holidays.
+Both portals share a single Firebase project with strict Firestore security rules enforcing role boundaries. All appointment state transitions are handled by Cloud Functions (TypeScript) to guarantee consistency and trigger transactional email notifications via Brevo.
 
 ---
 
-## 🤖 CI/CD Pipeline (GitHub Actions)
+## Key Features
 
-Continuous integration and continuous deployment are managed automatically via GitHub Actions:
-
-- **Workflow File**: [`.github/workflows/deploy.yml`](./.github/workflows/deploy.yml)
-- **Automated Quality Checks**: Runs `npm test` (functions), `dart analyze`, and `flutter test` on every PR or push.
-- **Pull Request Preview Channel**: Deploys temporary preview channels (e.g. `pr-12--oralscope-78cda.web.app`) for incoming PRs.
-- **Production Deployment**: Automatically compiles functions & Flutter web release (`ENV=prod`), then deploys to Firebase on push to `main`.
-
-> [!NOTE]
-> **Required GitHub Secret**: Set `FIREBASE_SERVICE_ACCOUNT_ORALSCOPE_78CDA` under **Repository Settings ➔ Secrets and variables ➔ Actions** with a valid GCP Service Account JSON key to enable automated deployments.
-
----
-
-## 📑 Documentation Map
-
-| Document | What it's for |
+| Area | Feature |
 |---|---|
-| [`dental-clinic-appointment-system-plan.md`](./docs/dental-clinic-appointment-system-plan.md) | Full technical spec: data model, business logic, phased implementation plan |
-| [`CONTRIBUTING.md`](./CONTRIBUTING.md) | Branching strategy, testing requirements, CI/CD, pre-deploy checklist |
-| [`GETTING-STARTED.md`](./docs/GETTING-STARTED.md) | Step-by-step build order from empty repo to first working feature |
-| [`dev-process.md`](./docs/dev-process.md) | Development process guidelines, commit standards, and roadmap tracking |
-| [`app-workflow-transaction-flow.md`](./docs/app-workflow-transaction-flow.md) | Diagrams: user flows, booking transaction, status lifecycle, notification triggers |
-| [`firestore.rules`](./firestore.rules) | Security rules governing users, appointments, services, settings, activity logs, and sso tokens |
-| [`functions-api-contract.md`](./docs/functions-api-contract.md) | Exact input/output contract for every Cloud Function |
-| [`schema-types.ts`](./functions/src/schema-types.ts) | Source-of-truth TypeScript types for all Firestore documents |
-| [`decisions-log.md`](./docs/decisions-log.md) | Tracks open questions and their resolutions as confirmed |
+| **Auth & Access** | Role-based routing (`admin` / `staff` / `patient`), patient self-signup with email verification, staff provisioned by admin only |
+| **Appointment Flow** | Walk-in booking (staff-side), patient self-booking with slot conflict prevention, status state machine (`pending → confirmed → completed / cancelled / no-show`) |
+| **Notifications** | Brevo transactional email on status change, scheduled appointment reminders via Cloud Scheduler |
+| **Admin Tools** | Staff account management (create, deactivate, password reset), services CRUD, clinic hours & settings |
+| **SSO** | Mobile-to-web single-use token handoff (`generateSsoToken` / `consumeSsoToken`) for linking the companion mobile app |
+| **Audit** | Immutable `activity_logs` collection; real-time audit trail screen for admins |
+| **CI/CD** | GitHub Actions: lint → test → build → deploy on every push to `main` |
 
 ---
 
 ## Tech Stack
 
-- **Frontend**: Flutter Web, Riverpod (State Management), GoRouter
-- **Backend / BaaS**: Firebase (Authentication, Cloud Firestore, 2nd Gen Cloud Functions, Hosting)
-- **Regions**: Cloud Functions deployed to `asia-southeast1` (Singapore)
-- **Testing & Tooling**: Dart Analyzer, Jest, `@firebase/rules-unit-testing`, TypeScript
-- **Email Service**: Brevo API integration
+| Layer | Technology |
+|---|---|
+| Frontend | Flutter Web (3.x stable) |
+| State Management | Riverpod |
+| Routing | GoRouter |
+| Backend | Firebase Auth · Cloud Firestore · Cloud Functions (2nd Gen) · Firebase Hosting |
+| Functions Runtime | TypeScript · Node.js 22 |
+| Email | Brevo transactional API |
+| Testing | Dart Analyzer · `flutter test` · Jest · `@firebase/rules-unit-testing` |
+| CI/CD | GitHub Actions |
+| Functions Region | `asia-southeast1` (Singapore) |
 
 ---
 
-## Prerequisites
+## Live Demo
 
-- Flutter SDK (stable channel) installed and on `PATH`
-- Node.js (v22 LTS recommended)
+🌐 **[https://oralscope-78cda.web.app](https://oralscope-78cda.web.app)**
+
+> The live app connects to the production Firebase project. Use the emulator + seed script for local development (see below) — the demo credentials below are **emulator-only**.
+
+---
+
+## Local Development
+
+### Prerequisites
+
+- Flutter SDK (stable channel) on `PATH`
+- Node.js 22 LTS
 - Firebase CLI: `npm install -g firebase-tools`
-- Access to Firebase project **`oralscope-78cda`**
-
----
-
-## Local Development Workflow
 
 ### 1. Clone & Install
+
 ```bash
 git clone <repo-url>
 cd dental_clinic_staff_app
@@ -99,61 +76,154 @@ flutter pub get
 cd functions && npm install && cd ..
 ```
 
-### 2. Run Firebase Emulators
+### 2. Configure Environment
+
+```bash
+# Root env — Firebase credentials for the Flutter app
+cp .env.example .env
+# Edit .env with your Firebase project values
+# (for emulator-only development, any syntactically valid values will work)
+
+# Functions env — Brevo email API key
+cp functions/.env.example functions/.env
+# The emulator works without a real Brevo key — emails are logged to the console
+```
+
+### 3. Start Firebase Emulators
+
 ```bash
 firebase emulators:start --project=oralscope-78cda
 ```
-Or with persisted state:
-```bash
-firebase emulators:start --project=oralscope-78cda --import=./emulator-data --export-on-exit
-```
 
-### 3. Seed Local Emulator (Optional)
+### 4. Seed Demo Data
+
 ```bash
 node scripts/seed-emulator.js
 ```
 
-### 4. Run Flutter App (Dev Mode)
+This creates the following demo accounts in the local emulator:
+
+| Role | Email | Password | Portal |
+|:---|:---|:---|:---|
+| Admin | `admin@clinic.test` | `password123` | Staff portal — full access |
+| Staff | `staff1@clinic.test` | `password123` | Staff portal — standard access |
+| Staff | `staff2@clinic.test` | `password123` | Staff portal — standard access |
+| Patient | `patient1@clinic.test` | `password123` | Patient portal — pre-verified |
+
+> **Note:** These credentials only work against the local emulator. The live production app uses separate accounts.
+
+### 5. Run the Flutter App (Dev Mode)
+
 ```bash
 flutter run -d chrome --dart-define=ENV=dev
 ```
 
-### 5. Run Unit Tests & Analysis
+The `ENV=dev` flag points all Firebase SDKs at the local emulator automatically.
+
+---
+
+## Running Tests
+
 ```bash
-# Cloud Functions & Firestore Rules Tests
+# Cloud Functions & Firestore security rules tests (Jest)
 cd functions && npm test
 
-# Flutter Static Analysis & Unit Tests
+# Flutter static analysis
 dart analyze
+
+# Flutter unit tests
 flutter test
 ```
 
 ---
 
+## 🤖 CI/CD (GitHub Actions)
+
+Continuous integration and deployment run automatically on every push. See [`.github/workflows/deploy.yml`](./.github/workflows/deploy.yml).
+
+| Trigger | Pipeline |
+|---|---|
+| Pull Request | Lint + test + preview channel deploy |
+| Push to `main` | Lint + test + production deploy |
+| Manual (`workflow_dispatch`) | Production deploy on demand |
+
+> **Required GitHub Secret:** `FIREBASE_SERVICE_ACCOUNT_ORALSCOPE_78CDA` — a GCP service account JSON key with Hosting/Functions deploy permissions.
+
+---
+
 ## Manual Production Deployment
 
-To deploy manually from your terminal:
-
 ```bash
-# 1. Compile Cloud Functions
-cd functions
-npm run build
-cd ..
+# 1. Build Cloud Functions
+cd functions && npm run build && cd ..
 
-# 2. Build Flutter Web Release
+# 2. Build Flutter Web (production)
 flutter build web --release --dart-define=ENV=prod
 
-# 3. Deploy all services to Firebase (asia-southeast1)
+# 3. Deploy
 firebase deploy --project=oralscope-78cda --force
 ```
 
 ---
 
-## Setup & Health Checklist
+## Project Structure
 
-- [x] `flutter run -d chrome --dart-define=ENV=dev` launches cleanly
-- [x] `firebase emulators:start --project=oralscope-78cda` runs Auth, Firestore, Functions
-- [x] `cd functions && npm test` passes unit and security rule tests
-- [x] `dart analyze` passes with 0 issues
-- [x] `flutter build web --release --dart-define=ENV=prod` builds release bundle cleanly
-- [x] Live app deployed to [https://oralscope-78cda.web.app](https://oralscope-78cda.web.app)
+```
+dental_clinic_staff_app/
+├── lib/
+│   ├── core/               # Shared models, services, theme, utilities
+│   │   ├── models/         # Dart mirrors of Firestore document schemas
+│   │   ├── services/       # ActivityLoggerService, etc.
+│   │   ├── theme/          # AppTheme, AppColors
+│   │   └── utils/          # FirebaseEmulator, FunctionsClient, SlotGenerator
+│   ├── features/           # One folder per feature area
+│   │   ├── auth/           # Login, signup, verification gate, SSO, password flows
+│   │   ├── dashboard/      # Appointment timeline + KPI cards
+│   │   ├── calendar/       # Week-view calendar grid
+│   │   ├── review_queue/   # Pending appointment review + detail view
+│   │   ├── walk_in_booking/# Walk-in appointment form (staff)
+│   │   ├── services_admin/ # Clinic services CRUD (admin)
+│   │   ├── settings/       # Clinic hours, holidays, slot config (admin)
+│   │   ├── staff_management/ # Staff accounts: create, deactivate, reset password
+│   │   ├── activity_logs/  # Immutable audit trail viewer (admin)
+│   │   └── patient_portal/ # Patient dashboard, booking wizard, appointments, profile
+│   └── routing/            # GoRouter with auth guards and role redirect logic
+├── functions/
+│   ├── src/                # Cloud Functions (TypeScript)
+│   │   ├── index.ts        # Function exports
+│   │   ├── schema-types.ts # Source-of-truth Firestore document types
+│   │   ├── createWalkInAppointment.ts
+│   │   ├── updateAppointmentStatus.ts
+│   │   ├── onAppointmentStatusChange.ts  # Firestore trigger → Brevo email
+│   │   ├── sendReminders.ts              # Scheduled reminders
+│   │   ├── generateSsoToken.ts / consumeSsoToken.ts
+│   │   ├── createStaffUser.ts / adminResetPassword.ts
+│   │   └── brevoService.ts               # Email abstraction (dev-mock mode)
+│   └── test/               # Jest tests for all functions + Firestore rules
+├── scripts/
+│   └── seed-emulator.js    # Seed emulator with demo users, services, settings
+├── docs/                   # Architecture docs, API contracts, decisions log
+├── firestore.rules         # Firestore security rules (production-hardened)
+├── .env.example            # Environment variable template (copy → .env)
+├── .github/workflows/      # CI/CD pipeline
+└── LICENSE                 # MIT
+```
+
+---
+
+## Documentation
+
+| Document | Purpose |
+|---|---|
+| [`dental-clinic-appointment-system-plan.md`](./docs/dental-clinic-appointment-system-plan.md) | Full technical spec: data model, business logic, phased implementation |
+| [`dev-process.md`](./docs/dev-process.md) | Phase-by-phase development history with implementation details |
+| [`functions-api-contract.md`](./docs/functions-api-contract.md) | Input/output contract for every Cloud Function |
+| [`app-workflow-transaction-flow.md`](./docs/app-workflow-transaction-flow.md) | User flows, booking transaction, status lifecycle, notification triggers |
+| [`decisions-log.md`](./docs/decisions-log.md) | Open questions and their resolutions |
+| [`CONTRIBUTING.md`](./CONTRIBUTING.md) | Branching strategy, testing requirements, pre-deploy checklist |
+
+---
+
+## License
+
+MIT © 2026 Gene Conceja — see [`LICENSE`](./LICENSE)

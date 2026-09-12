@@ -1,0 +1,38 @@
+{
+  "_comment": "This is a placeholder example file. Copy to google-services.json and fill in your Firebase project values.",
+  "_instructions": [
+    "1. Create a Firebase project at https://console.firebase.google.com",
+    "2. Go to Project Settings → Your apps → Add app (Android)",
+    "3. Download the generated google-services.json",
+    "4. Place it at android/app/google-services.json",
+    "Or, for local emulator development, this file is only needed for Android builds.",
+    "Flutter Web development (the primary target) does not use this file."
+  ],
+  "project_info": {
+    "project_number": "your-project-number",
+    "project_id": "your-firebase-project-id",
+    "storage_bucket": "your-firebase-project-id.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:your-project-number:android:your-app-id",
+        "android_client_info": {
+          "package_name": "com.example.dental_clinic_staff_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "your-android-api-key"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
