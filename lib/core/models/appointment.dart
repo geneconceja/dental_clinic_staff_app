@@ -107,6 +107,8 @@ class Appointment {
     required this.paid,
     required this.reminderSent,
     this.cancellationReason,
+    this.price,
+    this.isFirstVisit,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -133,6 +135,15 @@ class Appointment {
   final bool paid;
   final bool reminderSent;
   final String? cancellationReason;
+
+  /// Snapshotted service price at time of booking/completion.
+  /// Used for revenue analytics. May be null on legacy appointments — treat as 0.
+  final double? price;
+
+  /// True if this was the patient's first completed visit.
+  /// Set server-side on 'completed' transition. Null on legacy appointments.
+  final bool? isFirstVisit;
+
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -190,6 +201,8 @@ class Appointment {
       paid: (json['paid'] as bool?) ?? false,
       reminderSent: (json['reminderSent'] as bool?) ?? false,
       cancellationReason: json['cancellationReason'] as String?,
+      price: (json['price'] as num?)?.toDouble(),
+      isFirstVisit: json['isFirstVisit'] as bool?,
       createdAt: parseDateTime(json['createdAt']),
       updatedAt: parseDateTime(json['updatedAt']),
     );
@@ -219,6 +232,8 @@ class Appointment {
       'paid': paid,
       'reminderSent': reminderSent,
       if (cancellationReason != null) 'cancellationReason': cancellationReason,
+      if (price != null) 'price': price,
+      if (isFirstVisit != null) 'isFirstVisit': isFirstVisit,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
     };
@@ -247,6 +262,8 @@ class Appointment {
     bool? paid,
     bool? reminderSent,
     String? cancellationReason,
+    double? price,
+    bool? isFirstVisit,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -273,6 +290,8 @@ class Appointment {
       paid: paid ?? this.paid,
       reminderSent: reminderSent ?? this.reminderSent,
       cancellationReason: cancellationReason ?? this.cancellationReason,
+      price: price ?? this.price,
+      isFirstVisit: isFirstVisit ?? this.isFirstVisit,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

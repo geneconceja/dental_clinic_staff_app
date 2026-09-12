@@ -312,6 +312,11 @@ export async function createWalkInAppointmentHandler(
       createdBy:            callerUid,
       paid:                 false,
       reminderSent:         false,
+      // Snapshot the current service price for revenue analytics.
+      // Historical revenue remains accurate even if the admin later changes the service price.
+      price:                service.price ?? 0,
+      // isFirstVisit is NOT set here — it is determined server-side by updateAppointmentStatus
+      // when the appointment status transitions to 'completed', by checking prior visit history.
       createdAt:            FieldValue.serverTimestamp() as FirebaseFirestore.Timestamp,
       updatedAt:            FieldValue.serverTimestamp() as FirebaseFirestore.Timestamp,
     };

@@ -17,7 +17,7 @@
 import { onCall, HttpsError, CallableRequest } from "firebase-functions/v2/https";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
-import { Appointment, StaffUser, AppointmentStatus } from "./schema-types";
+import { Appointment, Service, StaffUser, AppointmentStatus } from "./schema-types";
 
 // ---------- Input type ----------
 
@@ -166,6 +166,43 @@ export async function updateAppointmentStatusHandler(
 
       if (newStatus === "cancelled") {
         updateData.cancellationReason = cancellationReason ? cancellationReason.trim() : "Cancelled by staff";
+      }
+
+      // On completion: snapshot service price + determine isFirstVisit for analytics
+      if (newStatus === "completed") {
+        // 1. Snapshot price from the service document (if not already set)
+        if (!appointment.price && appointment.serviceId) {
+          const serviceSnap = await db.collection("services").doc(appointment.serviceId).get();
+          if (serviceSnap.exists) {
+            const service = serviceSnap.data() as Service;
+            updateData.price = service.price ?? 0;
+          }
+        }
+
+        // 2. Determine isFirstVisit:
+        //    - For registered patients (userId set): check for any prior completed appointment with same userId
+        //    - For walk-ins (userId null): check by phoneNumber
+        //    We check OUTSIDE the transaction read limit via a separate query (reads before writes are complete).
+        let priorCompletedCount = 0;
+        if (appointment.userId) {
+          const priorQuery = await db.collection("appointments")
+            .where("userId", "==", appointment.userId)
+            .where("status", "==", "completed")
+            .limit(1)
+            .get();
+          priorCompletedCount = priorQuery.size;
+        } else if (appointment.phoneNumber) {
+          const priorQuery = await db.collection("appointments")
+            .where("phoneNumber", "==", appointment.phoneNumber)
+            .where("status", "==", "completed")
+            .limit(1)
+            .get();
+          priorCompletedCount = priorQuery.size;
+        }
+        // If no prior completed appointment exists, this is their first visit.
+        // Note: the current appointment itself is still 'confirmed' at this point (not yet updated),
+        // so it won't appear in the query above — the count is correctly 0 for first-timers.
+        updateData.isFirstVisit = priorCompletedCount === 0;
       }
 
       txn.update(appointmentRef, updateData);

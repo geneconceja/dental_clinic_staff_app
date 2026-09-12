@@ -130,6 +130,23 @@ export interface Appointment {
   paid: boolean;
   reminderSent: boolean;
   updatedAt?: FirebaseFirestore.Timestamp;
+
+  /**
+   * Snapshot of Service.price at time of booking/completion.
+   * Stored here so historical revenue remains accurate if service prices change later.
+   * Written by createWalkInAppointment and updateAppointmentStatus (on 'completed').
+   * May be absent on legacy appointments booked before this field was introduced — treat as 0.
+   */
+  price?: number;
+
+  /**
+   * True if this is the patient's first completed appointment.
+   * Set server-side by updateAppointmentStatus when status transitions to 'completed'
+   * and no prior completed appointment exists for the same userId or phoneNumber.
+   * Walk-in patients (userId == null) are matched by phoneNumber.
+   * Absent on legacy appointments — analytics should treat missing as unknown (exclude from split).
+   */
+  isFirstVisit?: boolean;
 }
 
 // ---------- Helper: default bookingSource for legacy records ----------
@@ -140,4 +157,35 @@ export interface Appointment {
  */
 export function resolveBookingSource(data: Partial<Appointment>): BookingSource {
   return data.bookingSource ?? "patient_app";
+}
+
+// ---------- analytics_summaries/{YYYY-MM} (optional pre-aggregated cache) ----------
+
+/**
+ * Written exclusively by Cloud Functions (Admin SDK) — never by the client.
+ * If present, the getAdminAnalytics function may return this cached document
+ * instead of re-scanning all appointments for closed months.
+ * Client read access is restricted to admin role via firestore.rules.
+ */
+export interface AnalyticsSummary {
+  /** "YYYY-MM" — the month this summary covers */
+  month: string;
+
+  totalAppointments: number;
+  completedCount: number;
+  noShowCount: number;
+  cancelledCount: number;
+
+  /** Sum of price on all completed + paid appointments in the month */
+  totalRevenue: number;
+
+  /** New vs. returning patient counts (only appointments with isFirstVisit set) */
+  newPatients: number;
+  returningPatients: number;
+
+  /** Top-5 services by booking count: { serviceName, count } */
+  topTreatments: Array<{ serviceName: string; count: number }>;
+
+  /** ISO timestamp of when this summary was last computed */
+  computedAt: FirebaseFirestore.Timestamp;
 }
