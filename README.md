@@ -6,7 +6,26 @@
 ![Firebase](https://img.shields.io/badge/Firebase-Firestore%20%7C%20Auth%20%7C%20Functions-FFCA28?logo=firebase&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-Cloud%20Functions-3178C6?logo=typescript)
 ![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?logo=github-actions&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green)
 [![Live App](https://img.shields.io/badge/Live%20Demo-oralscope--78cda.web.app-4CAF50)](https://oralscope-78cda.web.app)
+
+---
+
+## Table of Contents
+
+- [What This Is](#what-this-is)
+- [Key Features](#key-features)
+- [Tech Stack](#tech-stack)
+- [Live Demo](#live-demo)
+- [Local Development](#local-development)
+- [Running Tests](#running-tests)
+- [CI/CD](#-cicd-github-actions)
+- [Manual Production Deployment](#manual-production-deployment)
+- [Project Structure](#project-structure)
+- [Documentation](#documentation)
+- [Security & Data Privacy](#security--data-privacy)
+- [Support](#support)
+- [License](#license)
 
 ---
 
@@ -89,6 +108,8 @@ cp .env.example .env
 cp functions/.env.example functions/.env
 # The emulator works without a real Brevo key — emails are logged to the console
 ```
+
+> ⚠️ Never commit `.env` or `functions/.env` files. Both are covered in `.gitignore` — double-check before pushing if you rename or move them.
 
 ### 3. Start Firebase Emulators
 
@@ -229,6 +250,27 @@ dental_clinic_staff_app/
 | [`app-workflow-transaction-flow.md`](./docs/app-workflow-transaction-flow.md) | User flows, booking transaction, status lifecycle, notification triggers |
 | [`decisions-log.md`](./docs/decisions-log.md) | Open questions and their resolutions |
 | [`CONTRIBUTING.md`](./CONTRIBUTING.md) | Branching strategy, testing requirements, pre-deploy checklist |
+
+---
+
+## Security & Data Privacy
+
+This application stores patient personal and appointment data, so a few practices are worth calling out explicitly for anyone deploying or contributing:
+
+- **Firestore rules are the source of truth** for access control — role checks live in `firestore.rules`, not just in client code. Run the rules test suite (`cd functions && npm test`) before deploying any rules change.
+- **Secrets stay out of source control** — Firebase config and the Brevo API key are supplied via `.env` files (git-ignored) and GitHub Actions secrets, never hardcoded.
+- **Audit trail is immutable** — the `activity_logs` collection is write-once from Cloud Functions, giving admins a tamper-evident record of status changes and account actions.
+- **SSO tokens are single-use** — `generateSsoToken` / `consumeSsoToken` tokens expire after one use to limit exposure if a token is intercepted.
+
+This is not a compliance certification (e.g. HIPAA) — if you're deploying this for a real clinic, review applicable local health-data regulations and your hosting provider's compliance offerings separately.
+
+---
+
+## Support
+
+- **Bugs & feature requests:** open an issue in this repository.
+- **Questions about setup:** check [`docs/local-emulator-testing-guide.md`](./docs/local-emulator-testing-guide.md) first — most local dev issues are covered there.
+- **Contributing:** see [`CONTRIBUTING.md`](./CONTRIBUTING.md) for branching strategy and the pre-deploy checklist.
 
 ---
 
