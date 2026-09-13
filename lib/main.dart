@@ -25,9 +25,13 @@ Future<void> main() async {
 
   // Load .env before any Firebase SDK call (fail silently on web release if asset missing)
   try {
-    await dotenv.load(fileName: '.env');
-  } catch (e) {
-    debugPrint('[Main] dotenv load skipped or failed: $e');
+    await dotenv.load(fileName: 'assets/.env');
+  } catch (_) {
+    try {
+      await dotenv.load(fileName: '.env');
+    } catch (e) {
+      debugPrint('[Main] dotenv load skipped or failed: $e');
+    }
   }
 
   // Initialize Firebase
