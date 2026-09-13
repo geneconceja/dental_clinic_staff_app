@@ -140,6 +140,16 @@ function callableHandler(
 // Routes
 // ------------------------------------------------------------------
 
+// Root endpoint — friendly status check
+app.get("/", (_req: Request, res: Response) => {
+  res.status(200).json({
+    service: "Dental Clinic Backend API",
+    status: "online",
+    healthCheck: "/health",
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // Health check — no auth required; Render pings this to keep the service warm.
 app.get("/health", (_req: Request, res: Response) => {
   res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
