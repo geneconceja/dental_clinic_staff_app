@@ -14,7 +14,7 @@ services:
     region: singapore           # Closest to the Philippines for low latency
     branch: main
     rootDir: functions          # Build/start commands run inside functions/
-    buildCommand: npm install && npm run build
+    buildCommand: npm install --include=dev && npm run build
     startCommand: npm start
     plan: free                  # Free tier — no credit card required
     healthCheckPath: /health    # Render pings this to verify the service is up

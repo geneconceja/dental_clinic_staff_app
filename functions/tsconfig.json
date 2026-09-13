@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "moduleResolution": "node",
     "target": "es2020",
     "lib": [
       "es2020"
@@ -11,12 +10,8 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "types": [
-      "node", 
-      "jest"
-    ]
+    "resolveJsonModule": true
   },
   "compileOnSave": true,
-  "include": ["src/**/*", "test/**/*"]
+  "include": ["src/**/*"]
 }
