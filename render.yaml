@@ -1,0 +1,32 @@
+# render.yaml
+# Render infrastructure-as-code configuration for the OralScope backend.
+#
+# This file enables one-click Render deployment ("Blueprint") from the GitHub
+# repository. When you connect this repo to Render, it reads this file
+# automatically and pre-fills all service settings.
+#
+# Docs: https://render.com/docs/infrastructure-as-code
+
+services:
+  - type: web
+    name: oralscope-backend
+    runtime: node
+    region: singapore           # Closest to the Philippines for low latency
+    branch: main
+    rootDir: functions          # Build/start commands run inside functions/
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    plan: free                  # Free tier — no credit card required
+    healthCheckPath: /health    # Render pings this to verify the service is up
+
+    # Environment variables
+    # Set these in the Render Dashboard → Environment tab.
+    # DO NOT hardcode secret values here — this file is committed to Git.
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Secret variables — set via Render dashboard (not here):
+      # FIREBASE_SERVICE_ACCOUNT_KEY  ← paste the full service account JSON string
+      # BREVO_API_KEY                 ← your Brevo transactional email API key
+      # BREVO_SENDER_EMAIL            ← e.g., no-reply@oralscope-78cda.web.app
+      # BREVO_SENDER_NAME             ← e.g., OralScope Dental Clinic

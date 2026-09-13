@@ -48,7 +48,6 @@ Both portals share a single Firebase project with strict Firestore security rule
 | **Appointment Flow** | Walk-in booking (staff-side), patient self-booking with slot conflict prevention, status state machine (`pending → confirmed → completed / cancelled / no-show`) |
 | **Notifications** | Brevo transactional email on status change, scheduled appointment reminders via Cloud Scheduler |
 | **Admin Tools** | Staff account management (create, deactivate, password reset), services CRUD, clinic hours & settings |
-| **SSO** | Mobile-to-web single-use token handoff (`generateSsoToken` / `consumeSsoToken`) for linking the companion mobile app |
 | **Audit** | Immutable `activity_logs` collection; real-time audit trail screen for admins |
 | **CI/CD** | GitHub Actions: lint → test → build → deploy on every push to `main` |
 
@@ -205,7 +204,7 @@ dental_clinic_staff_app/
 │   │   ├── theme/          # AppTheme, AppColors
 │   │   └── utils/          # FirebaseEmulator, FunctionsClient, SlotGenerator
 │   ├── features/           # One folder per feature area
-│   │   ├── auth/           # Login, signup, verification gate, SSO, password flows
+│   │   ├── auth/           # Login, signup, verification gate, password flows
 │   │   ├── dashboard/      # Appointment timeline + KPI cards
 │   │   ├── calendar/       # Week-view calendar grid
 │   │   ├── review_queue/   # Pending appointment review + detail view
@@ -224,7 +223,6 @@ dental_clinic_staff_app/
 │   │   ├── updateAppointmentStatus.ts
 │   │   ├── onAppointmentStatusChange.ts  # Firestore trigger → Brevo email
 │   │   ├── sendReminders.ts              # Scheduled reminders
-│   │   ├── generateSsoToken.ts / consumeSsoToken.ts
 │   │   ├── createStaffUser.ts / adminResetPassword.ts
 │   │   └── brevoService.ts               # Email abstraction (dev-mock mode)
 │   └── test/               # Jest tests for all functions + Firestore rules
@@ -260,7 +258,6 @@ This application stores patient personal and appointment data, so a few practice
 - **Firestore rules are the source of truth** for access control — role checks live in `firestore.rules`, not just in client code. Run the rules test suite (`cd functions && npm test`) before deploying any rules change.
 - **Secrets stay out of source control** — Firebase config and the Brevo API key are supplied via `.env` files (git-ignored) and GitHub Actions secrets, never hardcoded.
 - **Audit trail is immutable** — the `activity_logs` collection is write-once from Cloud Functions, giving admins a tamper-evident record of status changes and account actions.
-- **SSO tokens are single-use** — `generateSsoToken` / `consumeSsoToken` tokens expire after one use to limit exposure if a token is intercepted.
 
 This is not a compliance certification (e.g. HIPAA) — if you're deploying this for a real clinic, review applicable local health-data regulations and your hosting provider's compliance offerings separately.
 

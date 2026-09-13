@@ -186,14 +186,6 @@ service cloud.firestore {
       }
     }
 
-    // ---------- sso_tokens (single-use SSO handoff tokens) ----------
-
-    match /sso_tokens/{tokenId} {
-      // SSO tokens are generated and consumed exclusively via Cloud Functions (Admin SDK).
-      // Direct client reads/writes are blocked for security.
-      allow read, write: if false;
-    }
-
     // ---------- activity_logs (system audit logs) ----------
 
     match /activity_logs/{logId} {

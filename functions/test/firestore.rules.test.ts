@@ -339,25 +339,4 @@ describe("activity_logs collection", () => {
       staffCtx.firestore().collection("activity_logs").doc(logId).delete()
     );
   });
-});
-
-describe("sso_tokens collection", () => {
-  test("direct client read of sso_tokens is DENIED", async () => {
-    await seedStaffUser();
-    const staffCtx = testEnv.authenticatedContext(STAFF_UID);
-    await assertFails(
-      staffCtx.firestore().collection("sso_tokens").doc("token-123").get()
-    );
-  });
-
-  test("direct client write to sso_tokens is DENIED", async () => {
-    await seedStaffUser();
-    const staffCtx = testEnv.authenticatedContext(STAFF_UID);
-    await assertFails(
-      staffCtx.firestore().collection("sso_tokens").doc("token-123").set({
-        uid: STAFF_UID,
-        used: false,
-      })
-    );
-  });
-});
+});

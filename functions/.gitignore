@@ -8,3 +8,11 @@ typings/
 # Node.js dependency directory
 node_modules/
 *.local
+
+# Environment secrets — NEVER commit these
+.env
+.env.*
+!.env.example
+service-account*.json
+*-service-account*.json
+firebase-admin-key*.json

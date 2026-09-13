@@ -19,7 +19,6 @@ import '../features/activity_logs/activity_logs_screen.dart';
 import '../features/auth/email_verification_gate_screen.dart';
 import '../features/auth/login_screen.dart';
 import '../features/auth/patient_signup_screen.dart';
-import '../features/auth/sso_exchange_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
 import '../features/patient_portal/patient_appointments_screen.dart';
 import '../features/patient_portal/patient_booking_wizard_screen.dart';
@@ -77,12 +76,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       final location = state.matchedLocation;
       final onLoginPage = location == '/login';
-      final onSsoPage = location == '/sso';
       final onSignUpPage = location == '/signup';
       final onVerificationPage = location == '/email-verification';
 
       // Public routes — always accessible, even signed out.
-      if (onSsoPage || onSignUpPage) return null;
+      if (onSignUpPage) return null;
 
       // Not logged in → always go to login (except public routes above)
       if (!isLoggedIn) {
@@ -177,15 +175,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/email-verification',
         name: AppRoutes.emailVerification,
         builder: (_, __) => const EmailVerificationGateScreen(),
-      ),
-      GoRoute(
-        path: '/sso',
-        name: 'sso',
-        builder: (context, state) {
-          final token = state.uri.queryParameters['token'] ?? '';
-          final target = state.uri.queryParameters['target'] ?? '/patient/dashboard';
-          return SsoExchangeScreen(token: token, targetPath: target);
-        },
       ),
       ShellRoute(
         builder: (context, state, child) {

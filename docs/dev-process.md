@@ -209,10 +209,9 @@
 - `lib/features/staff_management/add_staff_dialog.dart` — new staff creation form.
 - `lib/features/staff_management/admin_reset_password_dialog.dart` — admin password reset dialog.
 
-### Step 7.4 — Mobile-to-Web SSO ✅
-**Files created:**
-- `functions/src/generateSsoToken.ts` + `consumeSsoToken.ts` — single-use handoff token engine.
-- `lib/features/auth/sso_exchange_screen.dart` — SSO landing page.
+### Step 7.4 — Mobile-to-Web SSO (Deprecated & Removed)
+- Formerly implemented single-use handoff token engine (`generateSsoToken.ts` / `consumeSsoToken.ts` and `sso_exchange_screen.dart`).
+- Cleanly removed after companion mobile app was cancelled.
 
 ---
 
