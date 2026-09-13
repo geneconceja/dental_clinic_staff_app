@@ -2,11 +2,11 @@
   "name": "functions",
   "version": "1.0.0",
   "description": "",
-  "main": "lib/src/index.js",
+  "main": "lib/index.js",
   "scripts": {
     "postinstall": "node patch-emulator-compat.js",
     "build": "tsc",
-    "start": "node lib/src/server.js",
+    "start": "node lib/server.js",
     "test": "jest --runInBand"
   },
   "keywords": [],
