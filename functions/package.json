@@ -4,6 +4,7 @@
   "description": "",
   "main": "lib/src/index.js",
   "scripts": {
+    "postinstall": "node patch-emulator-compat.js",
     "build": "tsc",
     "test": "jest --runInBand"
   },
