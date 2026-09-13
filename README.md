@@ -1,10 +1,12 @@
 # OralScope — Dental Clinic Staff & Patient Portal
 
-> A full-stack **Flutter Web + Firebase** production application built for a single-dentist dental clinic. Staff and patients are served from the same web app, separated by role-based routing.
+> A full-stack **Flutter Web + Firebase + Render** production application built for a single-dentist dental clinic. Staff and patients are served from the same web app, separated by role-based routing, with server-side transactions powered by a dedicated Express API hosted on Render.
 
 ![Flutter](https://img.shields.io/badge/Flutter-Web-02569B?logo=flutter)
-![Firebase](https://img.shields.io/badge/Firebase-Firestore%20%7C%20Auth%20%7C%20Functions-FFCA28?logo=firebase&logoColor=black)
-![TypeScript](https://img.shields.io/badge/TypeScript-Cloud%20Functions-3178C6?logo=typescript)
+![Firebase](https://img.shields.io/badge/Firebase-Firestore%20%7C%20Auth%20%7C%20Hosting-FFCA28?logo=firebase&logoColor=black)
+![Render](https://img.shields.io/badge/Backend-Render-46E3B7?logo=render&logoColor=white)
+![Express](https://img.shields.io/badge/API-Express.js-000000?logo=express&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?logo=typescript)
 ![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?logo=github-actions&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green)
 [![Live App](https://img.shields.io/badge/Live%20Demo-oralscope--78cda.web.app-4CAF50)](https://oralscope-78cda.web.app)
@@ -16,7 +18,7 @@
 - [What This Is](#what-this-is)
 - [Key Features](#key-features)
 - [Tech Stack](#tech-stack)
-- [Live Demo](#live-demo)
+- [Live Demo & Presentation Guide](#-live-demo--presentation-guide)
 - [Local Development](#local-development)
 - [Running Tests](#running-tests)
 - [CI/CD](#-cicd-github-actions)
@@ -36,7 +38,7 @@ OralScope is a full-stack clinic management system with two portals served from 
 - **Staff/Admin Portal** — appointment review queue, walk-in booking desk, calendar, services management, staff account administration, and a real-time audit log.
 - **Patient Portal** — self-registration with email verification, a multi-step booking wizard with real-time slot availability, appointment history, and profile management.
 
-Both portals share a single Firebase project with strict Firestore security rules enforcing role boundaries. All appointment state transitions are handled by Cloud Functions (TypeScript) to guarantee consistency and trigger transactional email notifications via Brevo.
+Both portals share a Firebase project with strict Firestore security rules enforcing role boundaries. Backend state transitions, walk-in slot locking, analytics aggregation, and staff management are executed via an **Express REST API hosted on Render**, triggering transactional email notifications via Brevo.
 
 ---
 
@@ -44,12 +46,13 @@ Both portals share a single Firebase project with strict Firestore security rule
 
 | Area | Feature |
 |---|---|
-| **Auth & Access** | Role-based routing (`admin` / `staff` / `patient`), patient self-signup with email verification, staff provisioned by admin only |
+| **Auth & Access** | Role-based routing (`admin` / `staff` / `patient`), patient self-signup, staff provisioned by admin only |
 | **Appointment Flow** | Walk-in booking (staff-side), patient self-booking with slot conflict prevention, status state machine (`pending → confirmed → completed / cancelled / no-show`) |
-| **Notifications** | Brevo transactional email on status change, scheduled appointment reminders via Cloud Scheduler |
+| **Backend API** | Standalone Express server on Render with Bearer ID token auth; zero credit-card dependencies |
+| **Notifications** | Brevo transactional email on status change, scheduled appointment reminders |
 | **Admin Tools** | Staff account management (create, deactivate, password reset), services CRUD, clinic hours & settings |
 | **Audit** | Immutable `activity_logs` collection; real-time audit trail screen for admins |
-| **CI/CD** | GitHub Actions: lint → test → build → deploy on every push to `main` |
+| **CI/CD** | GitHub Actions: lint → test → build → automated deploy to Firebase Hosting on push to `main` |
 
 ---
 
@@ -60,18 +63,21 @@ Both portals share a single Firebase project with strict Firestore security rule
 | Frontend | Flutter Web (3.x stable) |
 | State Management | Riverpod |
 | Routing | GoRouter |
-| Backend | Firebase Auth · Cloud Firestore · Cloud Functions (2nd Gen) · Firebase Hosting |
-| Functions Runtime | TypeScript · Node.js 22 |
+| Backend Hosting | Render (Free Web Service) |
+| API Framework | Express.js (Node.js 22 LTS, TypeScript) |
+| Database & Auth | Cloud Firestore · Firebase Authentication |
+| Web Hosting | Firebase Hosting (`oralscope-78cda.web.app`) |
 | Email | Brevo transactional API |
 | Testing | Dart Analyzer · `flutter test` · Jest · `@firebase/rules-unit-testing` |
 | CI/CD | GitHub Actions |
-| Functions Region | `asia-southeast1` (Singapore) |
 
 ---
 
-## Live Demo
+## 🎬 Live Demo & Presentation Guide
 
-🌐 **[https://oralscope-78cda.web.app](https://oralscope-78cda.web.app)**
+🌐 **Live Application:** [https://oralscope-78cda.web.app](https://oralscope-78cda.web.app)
+
+> 📖 **Full Presentation Guide:** See [`docs/USER-AND-DEMO-GUIDE.md`](./docs/USER-AND-DEMO-GUIDE.md) for a comprehensive 5-act presentation script, live demo flows (Patient Self-Service, Review Queue, Walk-In Desk, Admin Intelligence), and architecture walkthrough.
 
 > The live app connects to the production Firebase project. Use the emulator + seed script for local development (see below) — the demo credentials below are **emulator-only**.
 
@@ -241,6 +247,7 @@ dental_clinic_staff_app/
 
 | Document | Purpose |
 |---|---|
+| [`USER-AND-DEMO-GUIDE.md`](./docs/USER-AND-DEMO-GUIDE.md) | **Comprehensive User Manual & 5-Act Live Demo Presentation Script** |
 | [`local-emulator-testing-guide.md`](./docs/local-emulator-testing-guide.md) | Complete step-by-step guide for local emulator setup, seeding, and testing |
 | [`dental-clinic-appointment-system-plan.md`](./docs/dental-clinic-appointment-system-plan.md) | Full technical spec: data model, business logic, phased implementation |
 | [`dev-process.md`](./docs/dev-process.md) | Phase-by-phase development history with implementation details |
