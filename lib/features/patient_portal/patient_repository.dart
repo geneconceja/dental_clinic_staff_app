@@ -51,6 +51,7 @@ class PatientRepository {
     required String startTime,
     required String endTime,
     required DateTime appointmentDateTime,
+    double? price,
     String? notes,
   }) async {
     final docRef = _firestore.collection('appointments').doc();
@@ -64,6 +65,7 @@ class PatientRepository {
       'serviceId': serviceId,
       'serviceName': serviceName,
       'reason': serviceName,
+      if (price != null) 'price': price,
       'date': dateStr,
       'appointmentDateTime': Timestamp.fromDate(appointmentDateTime),
       'startTime': startTime,

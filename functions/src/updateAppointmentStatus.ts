@@ -179,6 +179,9 @@ export async function updateAppointmentStatusHandler(
           }
         }
 
+        // 2. Mark as paid upon completion so revenue analytics reflects it
+        updateData.paid = true;
+
         // 2. Determine isFirstVisit:
         //    - For registered patients (userId set): check for any prior completed appointment with same userId
         //    - For walk-ins (userId null): check by phoneNumber

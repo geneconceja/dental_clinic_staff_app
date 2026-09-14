@@ -177,6 +177,7 @@ class _PatientBookingWizardScreenState extends ConsumerState<PatientBookingWizar
             phoneNumber: profile.phone.isNotEmpty ? profile.phone : '09000000000',
             serviceId: _selectedService!.id,
             serviceName: _selectedService!.name,
+            price: _selectedService!.price.toDouble(),
             dateStr: dateStr,
             startTime: _selectedStartTime!,
             endTime: _selectedEndTime!,
