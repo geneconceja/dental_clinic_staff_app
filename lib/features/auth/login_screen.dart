@@ -70,6 +70,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  Future<void> _quickLogin(String email, String password) async {
+    _emailController.text = email;
+    _passwordController.text = password;
+    await _submit();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -211,6 +217,62 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     ),
                                   )
                                 : const Text('Sign In'),
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          // ---------- 1-Click Demo Section ----------
+                          Row(
+                            children: [
+                              const Expanded(child: Divider(color: AppColors.border)),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                                child: Text(
+                                  'OR TRY LIVE DEMO',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: AppColors.textSecondary,
+                                    letterSpacing: 0.8,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              const Expanded(child: Divider(color: AppColors.border)),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: _isLoading
+                                      ? null
+                                      : () => _quickLogin('admin@clinic.test', 'password123'),
+                                  icon: const Icon(Icons.admin_panel_settings_outlined, size: 18),
+                                  label: const Text('Admin'),
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    foregroundColor: AppColors.primary,
+                                    side: const BorderSide(color: AppColors.primary),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: _isLoading
+                                      ? null
+                                      : () => _quickLogin('patient1@clinic.test', 'password123'),
+                                  icon: const Icon(Icons.person_outline, size: 18),
+                                  label: const Text('Patient'),
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    foregroundColor: AppColors.info,
+                                    side: const BorderSide(color: AppColors.info),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),

@@ -30,37 +30,37 @@ FirebaseOptions firebaseOptionsFromEnv() {
     apiKey: resolve(
       'FIREBASE_WEB_API_KEY',
       dartDefine: const String.fromEnvironment('FIREBASE_WEB_API_KEY'),
-      fallback: 'AIzaSyB20UmsoI1DIne0CDC-n9NSNf6_zt-MiXY',
+      fallback: 'AIzaSyBWOjULbjENj__WWTbP69punzBCywmxnbk',
     ),
     appId: resolve(
       'FIREBASE_WEB_APP_ID',
       dartDefine: const String.fromEnvironment('FIREBASE_WEB_APP_ID'),
-      fallback: '1:674648400625:web:1bc13a4d92f0a4f75abf50',
+      fallback: '1:703472694816:web:49629b64cbffbb6eadae45',
     ),
     messagingSenderId: resolve(
       'FIREBASE_MESSAGING_SENDER_ID',
       dartDefine: const String.fromEnvironment('FIREBASE_MESSAGING_SENDER_ID'),
-      fallback: '674648400625',
+      fallback: '703472694816',
     ),
     projectId: resolve(
       'FIREBASE_PROJECT_ID',
       dartDefine: const String.fromEnvironment('FIREBASE_PROJECT_ID'),
-      fallback: 'oralscope-78cda',
+      fallback: 'dental-clinic-ams',
     ),
     authDomain: resolve(
       'FIREBASE_AUTH_DOMAIN',
       dartDefine: const String.fromEnvironment('FIREBASE_AUTH_DOMAIN'),
-      fallback: 'oralscope-78cda.firebaseapp.com',
+      fallback: 'dental-clinic-ams.firebaseapp.com',
     ),
     storageBucket: resolve(
       'FIREBASE_STORAGE_BUCKET',
       dartDefine: const String.fromEnvironment('FIREBASE_STORAGE_BUCKET'),
-      fallback: 'oralscope-78cda.firebasestorage.app',
+      fallback: 'dental-clinic-ams.firebasestorage.app',
     ),
     measurementId: resolve(
       'FIREBASE_WEB_MEASUREMENT_ID',
       dartDefine: const String.fromEnvironment('FIREBASE_WEB_MEASUREMENT_ID'),
-      fallback: 'G-XM74GVJ4HP',
+      fallback: '',
     ),
   );
 }

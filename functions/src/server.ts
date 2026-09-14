@@ -59,6 +59,8 @@ app.use(express.json());
 
 // CORS — allow the live web app and local dev origins.
 const allowedOrigins = [
+  "https://dental-clinic-ams.web.app",
+  "https://dental-clinic-ams.firebaseapp.com",
   "https://oralscope-78cda.web.app",
   "https://oralscope-78cda.firebaseapp.com",
   "http://localhost:3000",

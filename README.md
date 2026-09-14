@@ -9,7 +9,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?logo=typescript)
 ![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?logo=github-actions&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green)
-[![Live App](https://img.shields.io/badge/Live%20Demo-oralscope--78cda.web.app-4CAF50)](https://oralscope-78cda.web.app)
+[![Live App](https://img.shields.io/badge/Live%20Demo-dental--clinic--ams.web.app-4CAF50)](https://dental-clinic-ams.web.app)
 
 ---
 
@@ -66,7 +66,7 @@ Both portals share a Firebase project with strict Firestore security rules enfor
 | Backend Hosting | Render (Free Web Service) |
 | API Framework | Express.js (Node.js 22 LTS, TypeScript) |
 | Database & Auth | Cloud Firestore · Firebase Authentication |
-| Web Hosting | Firebase Hosting (`oralscope-78cda.web.app`) |
+| Web Hosting | Firebase Hosting (`dental-clinic-ams.web.app`) |
 | Email | Brevo transactional API |
 | Testing | Dart Analyzer · `flutter test` · Jest · `@firebase/rules-unit-testing` |
 | CI/CD | GitHub Actions |
@@ -75,11 +75,18 @@ Both portals share a Firebase project with strict Firestore security rules enfor
 
 ## 🎬 Live Demo & Presentation Guide
 
-🌐 **Live Application:** [https://oralscope-78cda.web.app](https://oralscope-78cda.web.app)
+🌐 **Live Application:** [https://dental-clinic-ams.web.app](https://dental-clinic-ams.web.app)
 
-> 📖 **Full Presentation Guide:** See [`docs/USER-AND-DEMO-GUIDE.md`](./docs/USER-AND-DEMO-GUIDE.md) for a comprehensive 5-act presentation script, live demo flows (Patient Self-Service, Review Queue, Walk-In Desk, Admin Intelligence), and architecture walkthrough.
+> ⚡ **1-Click Quick Login:** The live login screen features built-in **"👑 Quick Login: Admin"** and **"👤 Quick Login: Patient"** buttons so reviewers and evaluators can explore full operational and administrative features with zero typing!
 
-> The live app connects to the production Firebase project. Use the emulator + seed script for local development (see below) — the demo credentials below are **emulator-only**.
+### Live Demo Accounts:
+| Portal | Email | Password | Access Level |
+|---|---|---|---|
+| **Admin Portal** | `admin@clinic.test` | `password123` | Full Access (Analytics, Review Queue, Walk-In Desk, Settings, Services, Staff) |
+| **Staff Portal** | `staff1@clinic.test` | `password123` | Operational Access (Review Queue, Walk-In Desk, Calendar) |
+| **Patient Portal** | `patient1@clinic.test` | `password123` | Patient Self-Booking Experience (Wizard, Appointments, Profile) |
+
+> 📖 **Full Presentation Guide:** See [`docs/USER-AND-DEMO-GUIDE.md`](./docs/USER-AND-DEMO-GUIDE.md) for a comprehensive 5-act presentation script and architecture walkthrough.
 
 ---
 

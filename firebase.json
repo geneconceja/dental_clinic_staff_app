@@ -10,13 +10,9 @@
       },
       "dart": {
         "lib/firebase_options.dart": {
-          "projectId": "oralscope-78cda",
+          "projectId": "dental-clinic-ams",
           "configurations": {
-            "android": "1:674648400625:android:338a07fc0d9b3be65abf50",
-            "ios": "1:674648400625:ios:24f8c2c74a078c375abf50",
-            "macos": "1:674648400625:ios:24f8c2c74a078c375abf50",
-            "web": "1:674648400625:web:1bc13a4d92f0a4f75abf50",
-            "windows": "1:674648400625:web:21fe9d9f94f729c25abf50"
+            "web": "1:703472694816:web:49629b64cbffbb6eadae45"
           }
         }
       }
@@ -41,7 +37,7 @@
     }
   ],
   "hosting": {
-    "site": "oralscope-78cda",
+    "site": "dental-clinic-ams",
     "public": "build/web",
     "ignore": [
       "firebase.json",

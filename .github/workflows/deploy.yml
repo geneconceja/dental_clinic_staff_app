@@ -70,8 +70,8 @@ jobs:
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_ORALSCOPE_78CDA }}'
-          projectId: oralscope-78cda
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY || secrets.FIREBASE_SERVICE_ACCOUNT_ORALSCOPE_78CDA }}'
+          projectId: dental-clinic-ams
           channelId: 'pr-${{ github.event.number }}'
 
   # ---------------------------------------------------------------------------
@@ -113,10 +113,10 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_ORALSCOPE_78CDA }}'
+          credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY || secrets.FIREBASE_SERVICE_ACCOUNT_ORALSCOPE_78CDA }}'
 
       - name: Install Latest Firebase CLI
         run: npm install -g firebase-tools
 
       - name: Deploy to Firebase (Hosting and Firestore)
-        run: firebase deploy --only hosting,firestore --project=oralscope-78cda --force
+        run: firebase deploy --only hosting,firestore --project=dental-clinic-ams --force

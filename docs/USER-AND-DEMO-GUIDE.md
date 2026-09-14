@@ -53,7 +53,7 @@ graph TD
     Render -->|Send Emails| Brevo
 ```
 
-- **Frontend:** Flutter Web hosted globally on **Firebase Hosting** (`https://oralscope-78cda.web.app`).
+- **Frontend:** Flutter Web hosted globally on **Firebase Hosting** (`https://dental-clinic-ams.web.app`).
 - **Database & Auth:** **Cloud Firestore** and **Firebase Authentication** on the Firebase Spark (free) tier.
 - **Backend API:** Custom **Node.js + Express** service hosted on **Render** (free tier).
 - **Client Client-Side Dual Mode:**
@@ -83,7 +83,7 @@ This script is organized into 5 sequential acts designed for a compelling live d
 ### Act 1: Patient Self-Service Booking
 *Goal: Show the smooth, modern patient booking experience and real-time validation.*
 
-1. **Navigate to the Live URL:** Open [`https://oralscope-78cda.web.app`](https://oralscope-78cda.web.app) in your browser.
+1. **Navigate to the Live URL:** Open [`https://dental-clinic-ams.web.app`](https://dental-clinic-ams.web.app) in your browser.
 2. **Access the Patient Portal:**
    - Click **"Sign Up"** to create a test patient account, or log in with an existing patient account.
 3. **Launch the Booking Wizard:**
@@ -188,9 +188,13 @@ When testing locally with `firebase emulators:start` and `flutter run --dart-def
 | **Patient** | `patient1@clinic.test` | `password123` | Patient self-booking portal |
 
 ### Live Production Deployment
-- **URL:** [`https://oralscope-78cda.web.app`](https://oralscope-78cda.web.app)
-- **Patient Access:** Any user can register an account via the on-screen "Sign Up" button.
-- **Admin/Staff Access:** Managed securely through the Firebase Authentication console.
+- **URL:** [`https://dental-clinic-ams.web.app`](https://dental-clinic-ams.web.app)
+- **1-Click Quick Login:** Use the built-in **👑 Quick Login: Admin** and **👤 Quick Login: Patient** buttons on the login screen for instant access!
+- **Pre-Configured Accounts:**
+  - **Admin:** `admin@clinic.test` / `password123`
+  - **Staff:** `staff1@clinic.test` / `password123`
+  - **Patient:** `patient1@clinic.test` / `password123`
+- **Patient Self-Registration:** Any reviewer can also register a fresh patient account via **Sign Up**.
 
 ---
 
