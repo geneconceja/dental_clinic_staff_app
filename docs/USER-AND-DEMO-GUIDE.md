@@ -85,7 +85,7 @@ This script is organized into 5 sequential acts designed for a compelling live d
 
 1. **Navigate to the Live URL:** Open [`https://dental-clinic-ams.web.app`](https://dental-clinic-ams.web.app) in your browser.
 2. **Access the Patient Portal:**
-   - Click **"Sign Up"** to create a test patient account, or log in with an existing patient account.
+   - Click the built-in **"👤 Quick Login: Patient"** button for instant 1-click access to Juan Dela Cruz (`patient1@clinic.test`), or click **"Sign Up"** to create a fresh test patient account.
 3. **Launch the Booking Wizard:**
    - Click **"Book Appointment"**.
    - **Step 1 — Select Service:** Choose a service (e.g., *Dental Cleaning* or *Root Canal*). Note how duration and pricing dynamically display.
@@ -100,7 +100,7 @@ This script is organized into 5 sequential acts designed for a compelling live d
 *Goal: Demonstrate the real-time synchronization between patient actions and staff operations.*
 
 1. **Log in as Staff/Admin:**
-   - Log out of the patient account and sign in with staff/admin credentials.
+   - Log out of the patient account and click **"👑 Quick Login: Admin"** on the login screen (or sign in manually with `admin@clinic.test` / `password123`).
 2. **Review Queue:**
    - Navigate to the **Review Queue** in the sidebar.
    - Show the newly submitted patient booking appearing at the top with a **Pending** badge.
@@ -140,11 +140,13 @@ This script is organized into 5 sequential acts designed for a compelling live d
 
 1. **Dashboard Analytics:**
    - Navigate to the **Dashboard**.
-   - Point out the KPI summary cards:
-     - *Total Appointments Today*
-     - *Pending Review Count*
-     - *Weekly Revenue Overview*
-     - *Service Distribution Chart*
+   - Point out the 6 live KPI summary cards & charts:
+     - *Total Appointments Today:* Displays today's scheduled patient slots across the clinic day.
+     - *Pending Review Count:* Live counter of incoming online requests needing triage.
+     - *Monthly Revenue Overview:* Realized revenue computed from completed appointments (seeded at ₱13,150.00+).
+     - *No-Show Rate:* Attendance metric (seeded at 18.2% based on completed vs. no-show records).
+     - *Weekly Appointment Volume Trend:* Daily distribution bar graph across the current week.
+     - *Top Treatments Breakdown:* Popularity breakdown (Dental Cleaning, Teeth Whitening, Tooth Extraction, Root Canal).
    - Explain that analytics aggregation is handled server-side on Render (`POST /api/getAdminAnalytics`) for maximum client performance.
 2. **Calendar View:**
    - Switch to the **Calendar** tab to see the week grid populated with color-coded appointments.
@@ -185,15 +187,25 @@ When testing locally with `firebase emulators:start` and `flutter run --dart-def
 |---|---|---|---|
 | **Admin** | `admin@clinic.test` | `password123` | Full access (Staff + Admin) |
 | **Staff** | `staff1@clinic.test` | `password123` | Operational access |
-| **Patient** | `patient1@clinic.test` | `password123` | Patient self-booking portal |
+| **Patient 1** | `patient1@clinic.test` | `password123` | Patient self-booking portal (Juan Dela Cruz) |
+| **Patient 2** | `patient2@clinic.test` | `password123` | Patient self-booking portal (Maria Clara Santos) |
+| **Patient 3** | `patient3@clinic.test` | `password123` | Patient self-booking portal (Angelo Reyes) |
+| **Patient 4** | `patient4@clinic.test` | `password123` | Patient self-booking portal (Bea Alonzo) |
 
 ### Live Production Deployment
 - **URL:** [`https://dental-clinic-ams.web.app`](https://dental-clinic-ams.web.app)
 - **1-Click Quick Login:** Use the built-in **👑 Quick Login: Admin** and **👤 Quick Login: Patient** buttons on the login screen for instant access!
 - **Pre-Configured Accounts:**
-  - **Admin:** `admin@clinic.test` / `password123`
-  - **Staff:** `staff1@clinic.test` / `password123`
-  - **Patient:** `patient1@clinic.test` / `password123`
+
+| Portal | Email | Password | Access Level | Seeded Profile & History |
+|---|---|---|---|---|
+| **Admin Portal** | `admin@clinic.test` | `password123` | Full Admin | Full system analytics, staff administration, settings, review queue |
+| **Staff Portal** | `staff1@clinic.test` | `password123` | Operational | Review queue, walk-in desk, schedule calendar |
+| **Patient Portal** | `patient1@clinic.test` | `password123` | Patient | Juan Dela Cruz — Dental Cleaning & Teeth Whitening history |
+| **Patient Portal** | `patient2@clinic.test` | `password123` | Patient | Maria Clara Santos — Dental Cleaning & Tooth Extraction history |
+| **Patient Portal** | `patient3@clinic.test` | `password123` | Patient | Angelo Reyes — Root Canal & Consultation history |
+| **Patient Portal** | `patient4@clinic.test` | `password123` | Patient | Bea Alonzo — Teeth Whitening & Dental Cleaning history |
+
 - **Patient Self-Registration:** Any reviewer can also register a fresh patient account via **Sign Up**.
 
 ---

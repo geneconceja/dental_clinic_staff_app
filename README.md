@@ -84,7 +84,10 @@ Both portals share a Firebase project with strict Firestore security rules enfor
 |---|---|---|---|
 | **Admin Portal** | `admin@clinic.test` | `password123` | Full Access (Analytics, Review Queue, Walk-In Desk, Settings, Services, Staff) |
 | **Staff Portal** | `staff1@clinic.test` | `password123` | Operational Access (Review Queue, Walk-In Desk, Calendar) |
-| **Patient Portal** | `patient1@clinic.test` | `password123` | Patient Self-Booking Experience (Wizard, Appointments, Profile) |
+| **Patient Portal** | `patient1@clinic.test` | `password123` | Patient 1 (Juan Dela Cruz — Cleaning & Whitening) |
+| **Patient Portal** | `patient2@clinic.test` | `password123` | Patient 2 (Maria Clara Santos — Cleaning & Extraction) |
+| **Patient Portal** | `patient3@clinic.test` | `password123` | Patient 3 (Angelo Reyes — Root Canal & Checkup) |
+| **Patient Portal** | `patient4@clinic.test` | `password123` | Patient 4 (Bea Alonzo — Whitening & Cleaning) |
 
 > 📖 **Full Presentation Guide:** See [`docs/USER-AND-DEMO-GUIDE.md`](./docs/USER-AND-DEMO-GUIDE.md) for a comprehensive 5-act presentation script and architecture walkthrough.
 
@@ -183,25 +186,27 @@ Continuous integration and deployment run automatically on every push. See [`.gi
 | Push to `main` | Lint + test + production deploy |
 | Manual (`workflow_dispatch`) | Production deploy on demand |
 
-> **Required GitHub Secret:** `FIREBASE_SERVICE_ACCOUNT_ORALSCOPE_78CDA` — a GCP service account JSON key with Hosting/Functions deploy permissions.
+> **Required GitHub Secrets:**
+> - `FIREBASE_SERVICE_ACCOUNT_KEY`: GCP service account JSON key for Firebase Hosting deployment (`dental-clinic-ams`).
+> - `FIREBASE_WEB_API_KEY`: Firebase Web API key injected into release builds at compile-time (satisfies GitHub Secret Scanning).
+> - `RENDER_BACKEND_URL`: Production URL of the Express API service on Render.
 
 ---
 
 ## Manual Production Deployment
 
 ```bash
-# 1. Build Cloud Functions
+# 1. Build Cloud Functions / Express API
 cd functions && npm run build && cd ..
 
-# 2. Build Flutter Web (production)
-flutter build web --release --dart-define=ENV=prod
+# 2. Build Flutter Web (production release)
+flutter build web --release \
+  --dart-define=ENV=prod \
+  --dart-define=BACKEND_URL=https://<YOUR-RENDER-SERVICE>.onrender.com \
+  --dart-define=FIREBASE_WEB_API_KEY=<YOUR-API-KEY>
 
-# 3. Deploy
-# Spark (free) plan — deploys Hosting & Firestore:
+# 3. Deploy to Firebase Hosting & Firestore
 firebase deploy --only hosting,firestore --project=dental-clinic-ams --force
-
-# Blaze (pay-as-you-go) plan — deploys Hosting, Firestore, and Cloud Functions:
-# firebase deploy --project=dental-clinic-ams --force
 ```
 
 ---
