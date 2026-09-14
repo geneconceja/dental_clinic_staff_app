@@ -30,7 +30,7 @@ FirebaseOptions firebaseOptionsFromEnv() {
     apiKey: resolve(
       'FIREBASE_WEB_API_KEY',
       dartDefine: const String.fromEnvironment('FIREBASE_WEB_API_KEY'),
-      fallback: 'AIzaSyBWOjULbjENj__WWTbP69punzBCywmxnbk',
+      fallback: '',
     ),
     appId: resolve(
       'FIREBASE_WEB_APP_ID',

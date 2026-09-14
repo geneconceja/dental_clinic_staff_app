@@ -64,7 +64,10 @@ jobs:
       - name: Build Web Release (Staging)
         run: |
           flutter pub get
-          flutter build web --release --dart-define=ENV=dev --dart-define=BACKEND_URL=${{ secrets.RENDER_BACKEND_URL }}
+          flutter build web --release \
+            --dart-define=ENV=dev \
+            --dart-define=BACKEND_URL=${{ secrets.RENDER_BACKEND_URL }} \
+            --dart-define=FIREBASE_WEB_API_KEY=${{ secrets.FIREBASE_WEB_API_KEY }}
 
       - name: Deploy to Firebase Hosting Preview Channel
         uses: FirebaseExtended/action-hosting-deploy@v0
@@ -108,7 +111,10 @@ jobs:
       - name: Build Flutter Web Release
         run: |
           flutter pub get
-          flutter build web --release --dart-define=ENV=prod --dart-define=BACKEND_URL=${{ secrets.RENDER_BACKEND_URL }}
+          flutter build web --release \
+            --dart-define=ENV=prod \
+            --dart-define=BACKEND_URL=${{ secrets.RENDER_BACKEND_URL }} \
+            --dart-define=FIREBASE_WEB_API_KEY=${{ secrets.FIREBASE_WEB_API_KEY }}
 
       - name: Deploy to Firebase Hosting (Live)
         uses: FirebaseExtended/action-hosting-deploy@v0
