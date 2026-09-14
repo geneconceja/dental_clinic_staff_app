@@ -110,13 +110,10 @@ jobs:
           flutter pub get
           flutter build web --release --dart-define=ENV=prod --dart-define=BACKEND_URL=${{ secrets.RENDER_BACKEND_URL }}
 
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
+      - name: Deploy to Firebase Hosting (Live)
+        uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY || secrets.FIREBASE_SERVICE_ACCOUNT_ORALSCOPE_78CDA }}'
-
-      - name: Install Latest Firebase CLI
-        run: npm install -g firebase-tools
-
-      - name: Deploy to Firebase (Hosting and Firestore)
-        run: firebase deploy --only hosting,firestore --project=dental-clinic-ams --force
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY || secrets.FIREBASE_SERVICE_ACCOUNT_ORALSCOPE_78CDA }}'
+          projectId: dental-clinic-ams
+          channelId: live
