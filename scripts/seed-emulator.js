@@ -26,7 +26,7 @@ const { getAuth } = require("firebase-admin/auth");
 process.env.FIRESTORE_EMULATOR_HOST = "127.0.0.1:8085";
 process.env.FIREBASE_AUTH_EMULATOR_HOST = "127.0.0.1:9099";
 
-initializeApp({ projectId: "oralscope-78cda" });
+initializeApp({ projectId: "dental-clinic-ams" });
 
 const db = getFirestore();
 const auth = getAuth();

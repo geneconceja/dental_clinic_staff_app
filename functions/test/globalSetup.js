@@ -20,7 +20,7 @@ const path = require("path");
 
 // Project root is two levels up from functions/test/
 const PROJECT_ROOT = path.resolve(__dirname, "..", "..");
-const PROJECT_ID = "oralscope-78cda";
+const PROJECT_ID = "dental-clinic-ams";
 
 const EMULATOR_PORTS = [
   { name: "Firestore", port: 8085 },

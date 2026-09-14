@@ -198,10 +198,10 @@ flutter build web --release --dart-define=ENV=prod
 
 # 3. Deploy
 # Spark (free) plan — deploys Hosting & Firestore:
-firebase deploy --only hosting,firestore --project=oralscope-78cda --force
+firebase deploy --only hosting,firestore --project=dental-clinic-ams --force
 
 # Blaze (pay-as-you-go) plan — deploys Hosting, Firestore, and Cloud Functions:
-# firebase deploy --project=oralscope-78cda --force
+# firebase deploy --project=dental-clinic-ams --force
 ```
 
 ---

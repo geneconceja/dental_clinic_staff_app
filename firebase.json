@@ -3,7 +3,7 @@
     "platforms": {
       "android": {
         "default": {
-          "projectId": "oralscope-78cda",
+          "projectId": "dental-clinic-ams",
           "appId": "1:674648400625:android:338a07fc0d9b3be65abf50",
           "fileOutput": "android/app/google-services.json"
         }
